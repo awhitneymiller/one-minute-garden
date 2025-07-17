@@ -1,249 +1,263 @@
 import { useState, useEffect } from "react";
+import { format, subDays } from "date-fns";
 import "./index.css";
 
-//New Feature ideas
-/*
-- Account
-- Database:
-- Map
-- Friends?
-- Add more plants
-- Add more gameplay
-  -minigame to water plant
-  - debug button for testing!!
-  -add api for daily affirmation
-  -world event / weather events for each day
-    - these events affect the plants
+import {
+  auth,
+  db,
+  signOut,
+  onAuthStateChanged,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc
+} from "./firebase";
 
-*/
+import { weatherEvents } from "./data/weather";
+import { allPlants } from "./data/plants";
+import { generateForecast } from "./logic/generateForecast";
+import { generateGoals } from "./logic/generateGoals";
+import { storyBeats } from "./data/story";
 
-const allPlants = [
-  { id: 1, name: "Lavender", bloomCombo: { water: 2, fertilize: 1 } },
-  { id: 2, name: "Marigold", bloomCombo: { water: 1, fertilize: 2 } },
-  { id: 3, name: "Fern", bloomCombo: { water: 1, fertilize: 1 } },
-  { id: 4, name: "Chamomile", bloomCombo: { water: 2, fertilize: 2 } },
-  { id: 5, name: "Rosemary", bloomCombo: { water: 3, fertilize: 1 } },
-];
-
-const GROWTH_STAGES = ["Seedling", "Sprout", "Bud", "Bloom"];
-const REGIONS = [
-  { id: 1, name: "Meadow", unlocked: true, unlockCondition: () => true },
-  { id: 2, name: "Grove", unlocked: false, unlockCondition: (harmonyScore) => harmonyScore >= 80 },
-  { id: 3, name: "Cliffside", unlocked: false, unlockCondition: (harmonyScore, bloomCount) => bloomCount >= 5 },
-];
-
-const THEMES = [
-  { name: "Default", backgroundColor: "#f0fdf4", textColor: "#14532d" },
-  { name: "Dusk", backgroundColor: "#e0e7ff", textColor: "#1e3a8a" },
-  { name: "Sunset", backgroundColor: "#fff7ed", textColor: "#b45309" },
-  { name: "Night", backgroundColor: "#1e293b", textColor: "#f8fafc" },
-];
-
-const generateGoals = () => [
-  { id: 1, description: "Water 3 plants", completed: false },
-  { id: 2, description: "Fertilize 2 plants", completed: false },
-  { id: 3, description: "Reach a harmony score of 90+", completed: false },
-  { id: 4, description: "Grow two plants to Sprout ", completed: false},
-  { id: 5, description: "Grow two plants to Fern", completed: false},
-  { id: 6, description: "Grow one plant to Bud", completed: false},
-  { id: 7, description: "Grow one plant to Bloom", completed: false}
-];
+import Auth from "./components/Auth";
+import DebugMenu from "./components/DebugMenu";
+import WeatherForecast from "./components/WeatherForecast";
+import SeedInventory from "./components/SeedInventory";
+import StoryPanel from "./components/StoryPanel";
+import Journal from "./components/Journal";
+import PlantCard from "./components/PlantCard";
+import MapView from "./components/MapView";
+import PlantRecipes from "./components/PlantRecipes";
+import TimerSelector from "./components/TimerSelector";
+import StreakDisplay from "./components/StreakDisplay";
+import CalendarView from "./components/CalendarView";
+import ThemeToggle from "./components/ThemeToggle";
 
 export default function App() {
-  const [theme, setTheme] = useState("Default");
-  const [activeRegion, setActiveRegion] = useState(REGIONS[0]);
-  const [regionStates, setRegionStates] = useState(REGIONS);
-  const [upgrades, setUpgrades] = useState({ compost: false, mistSpray: false, extendedTime: false });
-  const [activeGarden, setActiveGarden] = useState(() => {
-    return allPlants.slice(0, 3).map((plant) => ({
-      ...plant,
-      growth: 0,
-      watered: 0,
-      fertilized: 0,
-      notes: [],
-      bloomed: false,
-      rareFormUnlocked: false,
-      hasMysterySeed: false,
-    }));
-  });
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const [timeLeft, setTimeLeft] = useState(300);
-  const [sessionActive, setSessionActive] = useState(false);
-  const [message, setMessage] = useState("");
-  const [journalEntry, setJournalEntry] = useState("");
-  const [harmonyScore, setHarmonyScore] = useState(null);
+  const starterSeeds = allPlants.slice(0, 3).map(({ id, name }) => ({ id, name }));
+  const [inventory, setInventory] = useState(starterSeeds);
+  const [plantedPlants, setPlantedPlants] = useState([]);
+  const [storyIndex, setStoryIndex] = useState(0);
+
+  const [view, setView] = useState("garden");
+  const [journal, setJournal] = useState("");
+  const [forecast, setForecast] = useState(generateForecast());
   const [dailyGoals, setDailyGoals] = useState(generateGoals());
 
-  useEffect(() => {
-    if (sessionActive && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft === 0) {
-      endSession();
-    }
-  }, [sessionActive, timeLeft]);
+  const [sessionLength, setSessionLength] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [sessionActive, setSessionActive] = useState(false);
 
-  const endSession = () => {
-    let total = 0;
-    let perfect = 0;
-    let bloomCount = 0;
-    let goals = [...dailyGoals];
-    const updated = activeGarden.map((plant) => {
-      const { water, fertilize } = plant.bloomCombo;
-      const watered = plant.watered;
-      const fertilized = plant.fertilized;
-      const isPerfect = watered === water && fertilized === fertilize;
-      let harmony = 100 - Math.abs(watered - water) * 25 - Math.abs(fertilized - fertilize) * 25;
-      if (upgrades.compost) harmony = Math.min(100, harmony + 10);
-      if (upgrades.mistSpray && (watered > water || fertilized > fertilize)) harmony = Math.min(100, harmony + 5);
-      total += Math.max(0, harmony);
-      if (isPerfect) perfect++;
-      if (isPerfect && !plant.bloomed) bloomCount++;
-      const seedDrop = isPerfect && Math.random() < 0.5;
-      return {
-        ...plant,
-        growth: isPerfect ? Math.min(plant.growth + 1, GROWTH_STAGES.length - 1) : plant.growth,
-        bloomed: isPerfect ? true : plant.bloomed,
-        hasMysterySeed: seedDrop,
-        watered: 0,
-        fertilized: 0,
-      };
-    });
+  const [lastSessionDate, setLastSessionDate] = useState(null);
+  const [streak, setStreak] = useState(0);
+  const [sessionDates, setSessionDates] = useState([]);
 
-    if (updated.filter((p) => p.watered >= 3).length > 0) goals[0].completed = true;
-    if (updated.filter((p) => p.fertilized >= 2).length > 0) goals[1].completed = true;
-    const score = Math.round(total / activeGarden.length);
-    if (score >= 90) goals[2].completed = true;
+  const [coins, setCoins] = useState(0);
+  const [xp, setXp] = useState(0);
 
-    const newRegions = regionStates.map((r) => {
-      if (r.unlocked) return r;
-      if (r.unlockCondition(score, bloomCount)) return { ...r, unlocked: true };
-      return r;
-    });
-
-    setRegionStates(newRegions);
-    setActiveGarden(updated);
-    setSessionActive(false);
-    setHarmonyScore(score);
-    setMessage(`Your Harmony Score: ${score}/100`);
-    setDailyGoals(goals);
-  };
-
-  const performAction = (id, action) => {
-    if (!sessionActive) return;
-    setActiveGarden((prev) =>
-      prev.map((plant) => {
-        if (plant.id === id) {
-          const updated = { ...plant };
-          if (action === "water") updated.watered++;
-          if (action === "fertilize") updated.fertilized++;
-          return updated;
-        }
-        return plant;
-      })
-    );
-  };
-
-  const addJournalNote = () => {
-    if (!journalEntry.trim()) return;
-    const date = new Date().toLocaleString();
-    const note = `${date}: ${journalEntry}`;
-    setActiveGarden((prev) =>
-      prev.map((plant) => ({ ...plant, notes: [...(plant.notes || []), note] }))
-    );
-    setJournalEntry("");
-    setMessage("Your journal has been saved.");
-  };
-
-  const applyUpgrade = (key) => {
-    setUpgrades((prev) => ({ ...prev, [key]: true }));
-    setMessage(`Upgrade applied: ${key}`);
-  };
-
-  const startSession = () => {
-    const baseTime = 300;
-    const bonusTime = upgrades.extendedTime ? 60 : 0;
-    setTimeLeft(baseTime + bonusTime);
-    setSessionActive(true);
-    setHarmonyScore(null);
-    setMessage(`Welcome to the ${activeRegion.name}!`);
-    setDailyGoals(generateGoals());
-  };
-
-  const liveHarmony = Math.round(
-    activeGarden.reduce((sum, plant) => {
-      const { water, fertilize } = plant.bloomCombo;
-      let score = 100 - Math.abs(plant.watered - water) * 25 - Math.abs(plant.fertilized - fertilize) * 25;
-      if (upgrades.compost) score = Math.min(100, score + 10);
-      if (upgrades.mistSpray && (plant.watered > water || plant.fertilized > fertilize)) score = Math.min(100, score + 5);
-      return sum + Math.max(0, score);
-    }, 0) / activeGarden.length
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("omg-theme") || "light"
   );
 
-  const currentTheme = THEMES.find((t) => t.name === theme);
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+    localStorage.setItem("omg-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setAuthChecked(true);
+      if (u) {
+        setUser(u);
+        const ref = doc(db, "users", u.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const d = snap.data();
+          const mergedInventory = [
+            ...starterSeeds,
+            ...(d.inventory || []).filter(
+              (item) => !starterSeeds.find((s) => s.id === item.id)
+            )
+          ];
+          setInventory(mergedInventory);
+          setPlantedPlants(
+            (d.plantedPlants || []).map((p, i) => ({
+              ...p,
+              instanceId: p.instanceId || `${p.id}-${i}`
+            }))
+          );
+          setStoryIndex(d.storyIndex);
+          setLastSessionDate(d.lastSessionDate);
+          setStreak(d.streak);
+          setSessionDates(d.sessionDates || []);
+          setCoins(d.coins || 0);
+          setXp(d.xp || 0);
+        } else {
+          const init = {
+            inventory: starterSeeds,
+            plantedPlants: [],
+            storyIndex: 0,
+            lastSessionDate: null,
+            streak: 0,
+            sessionDates: [],
+            coins: 0,
+            xp: 0
+          };
+          await setDoc(ref, init);
+          setInventory(starterSeeds);
+        }
+      } else {
+        setUser(null);
+      }
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    updateDoc(doc(db, "users", user.uid), {
+      inventory,
+      plantedPlants,
+      storyIndex,
+      lastSessionDate,
+      streak,
+      sessionDates,
+      coins,
+      xp
+    }).catch(console.error);
+  }, [
+    user,
+    inventory,
+    plantedPlants,
+    storyIndex,
+    lastSessionDate,
+    streak,
+    sessionDates,
+    coins,
+    xp
+  ]);
+
+  useEffect(() => {
+    if (!sessionActive) return;
+    if (sessionLength === 0 || timeLeft <= 0) {
+      completeSession();
+      return;
+    }
+    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [sessionActive, timeLeft, sessionLength]);
+
+  if (!authChecked) return null;
+  if (!user) return <Auth />;
+
+  const todayKey = format(new Date(), "yyyy-MM-dd");
+
+  function completeSession() {
+    setSessionActive(false);
+  }
+
+  function startSession() {
+    setSessionActive(true);
+    setTimeLeft(sessionLength * 60);
+  }
+
+  function plantSeed(p) {
+    setInventory((inv) => inv.filter((i) => i.id !== p.id));
+    setPlantedPlants((plants) => [
+      ...plants,
+      {
+        ...p,
+        stage: 0,
+        watered: false,
+        fertilized: false,
+        rewarded: false,
+        instanceId: `${p.id}-${Date.now()}`
+      }
+    ]);
+  }
 
   return (
-    <div style={{ padding: "2rem", textAlign: "center", backgroundColor: currentTheme.backgroundColor, color: currentTheme.textColor, minHeight: "100vh" }}>
-      <h1>🌿 One Minute Garden</h1>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label htmlFor="theme">Choose Theme: </label>
-        <select id="theme" value={theme} onChange={(e) => setTheme(e.target.value)}>
-          {THEMES.map((t) => (
-            <option key={t.name} value={t.name}>{t.name}</option>
+    <div className="app-container">
+      <header className="app-header">
+        <h1>🌿 One Minute Garden</h1>
+        <nav className="nav">
+          {["garden", "map", "recipes"].map((v) => (
+            <button
+              key={v}
+              className={view === v ? "active" : ""}
+              onClick={() => setView(v)}
+            >
+              {v}
+            </button>
           ))}
-        </select>
-      </div>
+        </nav>
+        <ThemeToggle theme={theme} setTheme={setTheme} />
+        <button className="logout-btn" onClick={() => signOut(auth)}>
+          Log Out
+        </button>
+      </header>
 
-      {!sessionActive ? (
-        <div style={{ marginTop: "1rem" }}>
-          <h3>📖 Care Recipes</h3>
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {activeGarden.length > 0 &&
-              activeGarden.map((plant) => (
-                <li key={plant.id}>
-                  {plant.name}: {plant.bloomCombo.water}x 💧 / {plant.bloomCombo.fertilize}x 🌿
-                </li>
+      {view === "garden" && (
+        <main className="dashboard">
+          <section className="card goals">
+            <h3>🎯 Daily Goals</h3>
+            <ul>
+              {dailyGoals.map((g) => (
+                <li key={g.id}>{g.description}</li>
               ))}
-          </ul>
-          <button onClick={startSession}>Begin Garden Session in {activeRegion.name}</button>
-        </div>
-      ) : (
-        <div>
-          <p>Time left: {timeLeft}s</p>
-          <p>Harmony Score: {liveHarmony}/100</p>
+            </ul>
+          </section>
 
-          <h3>Daily Goals</h3>
-          <ul>
-            {dailyGoals.map((goal) => (
-              <li key={goal.id} style={{ textDecoration: goal.completed ? "line-through" : "none" }}>{goal.description}</li>
-            ))}
-          </ul>
+          <section className="card controls">
+            <TimerSelector
+              sessionLength={sessionLength}
+              setSessionLength={setSessionLength}
+            />
+            <DebugMenu
+              onFastForward={() => setTimeLeft((t) => Math.max(0, t - 30))}
+              onStartSession={startSession}
+            />
+            {sessionActive && <p>⏳ {timeLeft}s</p>}
+          </section>
 
-          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "1rem", marginTop: "2rem" }}>
-            {activeGarden.map((plant) => (
-              <div key={plant.id} style={{ background: "#fff", padding: "1rem", borderRadius: "12px", width: "250px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)", color: "#000" }}>
-                <h3>{plant.name}</h3>
-                <p>Stage: {GROWTH_STAGES[plant.growth]}</p>
-                <p>Watered: {plant.watered} | Fertilized: {plant.fertilized}</p>
-                <button onClick={() => performAction(plant.id, "water")}>💧 Water</button>
-                <button onClick={() => performAction(plant.id, "fertilize")}>🌿 Fertilize</button>
+          <section className="card inventory">
+            <SeedInventory inventory={inventory} onPlant={plantSeed} />
+          </section>
+
+          <section className="card garden">
+            <h3>🌼 Your Garden</h3>
+            {plantedPlants.length === 0 ? (
+              <p className="empty">Your garden is empty. Plant seeds!</p>
+            ) : (
+              <div className="plant-grid">
+                {plantedPlants.map((p) => (
+                  <PlantCard
+                    key={p.instanceId}
+                    plant={p}
+                    onWater={() => {}}
+                    onFertilize={() => {}}
+                    sessionActive={sessionActive}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </section>
+        </main>
+      )}
 
-          <div style={{ marginTop: "2rem" }}>
-            <textarea
-              rows={3}
-              placeholder="Write in your garden journal..."
-              value={journalEntry}
-              onChange={(e) => setJournalEntry(e.target.value)}
-              style={{ width: "100%", maxWidth: "500px" }}
-            ></textarea>
-            <br />
-            <button onClick={addJournalNote}>Save Journal</button>
-          </div>
-        </div>
+      {view === "map" && (
+        <main className="single-pane">
+          <MapView bloomCount={plantedPlants.filter((p) => p.stage === 3).length} />
+        </main>
+      )}
+
+      {view === "recipes" && (
+        <main className="single-pane">
+          <PlantRecipes plants={allPlants} />
+        </main>
       )}
     </div>
   );
