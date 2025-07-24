@@ -1,53 +1,47 @@
-import { useState } from "react";
-import WaterMiniGame from "./WaterMiniGame";
+// src/components/PlantCard.jsx
+import React from "react";
 
-export default function PlantCard({
-  plant,
-  onWater,
-  onFertilize,
-  sessionActive
-}) {
-  const [gameActive, setGameActive] = useState(false);
+const moodEmoji = {
+  happy: "😊",
+  thirsty: "💧",
+  sleepy: "😴",
+  lonely: "🥺",
+  radiant: "🌟",
+  default: "🙂",
+};
 
-  const handleWaterClick = () => {
-    if (!sessionActive || plant.watered) return;
-    setGameActive(true);
-  };
-
-  const onGameComplete = rt => {
-    setGameActive(false);
-    onWater(plant.id, rt);
-  };
+export default function PlantCard({ plant, onWater, onFertilize, onSell }) {
+  const stageNames = ["Seed", "Sprout", "Bud", "Bloom"];
+  const stagePercent = (plant.stage / 3) * 100;
+  const water = plant.waterLevel ?? 100;
+  const imagePath = `/assets/plants/${plant.name.replace(/\s+/g, "").toLowerCase()}.png`;
+  const mood = plant.mood || "happy";
 
   return (
-    <div className="card">
-      <div className="emoji">
-        {["🌱", "🌿", "🌸", "🌼"][plant.stage]}
-      </div>
+    <div className="plant-card">
       <h4>{plant.name}</h4>
-      <p>Stage: {["Seedling","Sprout","Bud","Bloom"][plant.stage]}</p>
-      <p>
-        Watered: {plant.water} Fertilized: {plant.fertilize}
-      </p>
+      <p>Stage: {stageNames[plant.stage]}</p>
+      <p>Mood: {moodEmoji[mood] || moodEmoji.default}</p>
 
-      {gameActive ? (
-        <WaterMiniGame onComplete={onGameComplete} />
+      {plant.stage === 3 ? (
+        <img src={imagePath} alt={plant.name} className="plant-img" />
       ) : (
-        <div className="actions">
-          <button
-            disabled={!sessionActive || plant.watered}
-            onClick={handleWaterClick}
-          >
-            💧 Water
-          </button>
-          <button
-            disabled={!sessionActive || plant.fertilized}
-            onClick={() => onFertilize(plant.id)}
-          >
-            🌱 Fertilize
-          </button>
-        </div>
+        <div className="placeholder">{stageNames[plant.stage]}</div>
       )}
+
+      <div className="meter-label">💧 Water</div>
+      <div className="meter-bar">
+        <div className="meter-fill water" style={{ width: `${Math.round(water)}%` }} />
+      </div>
+
+      <div className="meter-label">🌱 Growth</div>
+      <div className="meter-bar">
+        <div className="meter-fill growth" style={{ width: `${stagePercent}%` }} />
+      </div>
+
+      <button onClick={() => onWater(plant)}>💦 Water</button>
+      <button onClick={() => onFertilize(plant)}>🌿 Fertilize</button>
+      {plant.stage === 3 && <button onClick={() => onSell(plant)}>💰 Sell</button>}
     </div>
   );
 }

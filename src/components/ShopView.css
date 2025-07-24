@@ -1,0 +1,25 @@
+.shop-view {
+  padding: 1rem;
+  color: var(--text-color);
+}
+
+.shop-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.shop-item {
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: var(--bg-light);
+  width: 140px;
+  text-align: center;
+}
+
+.shop-item img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}

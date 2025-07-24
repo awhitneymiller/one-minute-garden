@@ -1,0 +1,14 @@
+// src/logic/calculateMood.js
+export function calculateMood(plant) {
+  const now = Date.now();
+  const minutesSinceCare = (now - (plant.lastCareTime || now)) / 60000;
+  const waterLevel = plant.waterLevel ?? 100;
+  const stage = plant.stage ?? 0;
+
+  if (waterLevel === 0) return "thirsty";
+  if (minutesSinceCare > 1440) return "lonely";
+  if (minutesSinceCare > 720) return "sleepy";
+  if (stage === 3 && waterLevel > 50) return "radiant";
+
+  return "happy";
+}

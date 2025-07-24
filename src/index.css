@@ -89,3 +89,95 @@ body {
   margin: 1rem auto;
   padding: 1rem;
 }
+
+.minigame {
+  background: #fff;
+  padding: 1rem;
+  border: 2px solid #aaa;
+  border-radius: 12px;
+  width: 300px;
+  margin: 1rem auto;
+  text-align: center;
+}
+
+.bar-container {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: #eee;
+  margin: 1rem 0;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.bar-fill {
+  position: absolute;
+  top: 0;
+  width: 10%;
+  height: 100%;
+  background: #2196f3;
+  border-radius: 10px;
+  transition: left 0.03s;
+}
+
+.target {
+  position: absolute;
+  top: 0;
+  left: 40%;
+  width: 20%;
+  height: 100%;
+  background: rgba(76, 175, 80, 0.4); /* green */
+}
+.shop {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.shop-tabs button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #c7f2d2;
+  cursor: pointer;
+}
+
+.shop-tabs button.active {
+  background: #93e9be;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.shop-item {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 0.8rem;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.plant-recipes {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.recipe-card {
+  border: 1px solid #ccc;
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #fff;
+  text-align: center;
+}

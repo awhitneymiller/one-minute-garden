@@ -1,55 +1,140 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.plant-card {
+  border: 2px solid #ccc;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: #f9fdf9;
   text-align: center;
+  width: 200px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.water-meter {
+  margin: 0.5rem 0;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.bar {
+  height: 10px;
+  background: #ddd;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.bar .fill {
+  height: 10px;
+  transition: width 0.3s;
+}
+.plant-card {
+  background: #f9fdf9;
+  padding: 1rem;
+  margin: 0.5rem;
+  border-radius: 10px;
+  border: 2px solid #c0e0d2;
+  text-align: center;
+  width: 200px;
+}
+
+.meter-label {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.meter-bar {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.meter-fill {
+  height: 100%;
+}
+
+.meter-fill.water {
+  background: #4fc3f7;
+}
+
+.meter-fill.growth {
+  background: #81c784;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f2fff5;
+  color: #333;
+}
+
+.app-header {
+  background: linear-gradient(to right, #b6e2d3, #f6d8ae);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #ccc;
+}
+
+.nav button,
+.logout-btn,
+.theme-toggle {
+  margin: 0 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.nav button.active {
+  background-color: #b6e2d3;
+  color: #064d3c;
+}
+
+.dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.5rem;
 }
 
 .card {
-  padding: 2em;
+  background-color: #ffffffd7;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 12px;
+  flex: 1 1 300px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.read-the-docs {
-  color: #888;
+.plant-card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem;
+  background-color: #fff;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
-button {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  border: none;
-  background-color: #b8e0d2;
+.plant-img {
+  width: 80px;
+  height: auto;
+  margin-bottom: 0.5rem;
+}
+
+.progress-wrap {
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #eee;
   border-radius: 8px;
-  cursor: pointer;
+  overflow: hidden;
 }
 
-button:hover {
-  background-color: #a0d8c2;
+.progress-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.3s ease-in-out;
 }
