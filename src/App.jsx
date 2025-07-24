@@ -32,6 +32,7 @@ import TimerSelector from "./components/TimerSelector";
 import StreakDisplay from "./components/StreakDisplay";
 import CalendarView from "./components/CalendarView";
 import ThemeToggle from "./components/ThemeToggle";
+import MusicPlayer from "./components/MusicPlayer"; // ✅ added
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -259,6 +260,9 @@ export default function App() {
           <PlantRecipes plants={allPlants} />
         </main>
       )}
+
+      {/* ✅ Music toggle button always present */}
+      <MusicPlayer />
     </div>
   );
 }

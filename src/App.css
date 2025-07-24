@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: none;
+  background-color: #b8e0d2;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #a0d8c2;
+}
