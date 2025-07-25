@@ -1,31 +1,29 @@
-// src/components/CalendarView.jsx
 import React from "react";
-import { format, subDays } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 
-export default function CalendarView({ sessionDates }) {
-  const days = Array.from({ length: 7 }).map((_, i) => {
-    const date = subDays(new Date(), 6 - i);
-    const key = format(date, "yyyy-MM-dd");
-    const done = sessionDates.includes(key);
-    return { key, label: format(date, "MM/dd"), done };
+export default function CalendarView({ sessionDates = [] }) {
+  const today = new Date();
+  const monthStart = startOfMonth(today);
+  const monthEnd = endOfMonth(today);
+
+  const days = eachDayOfInterval({
+    start: monthStart,
+    end: monthEnd
   });
 
   return (
-    <div className="panel">
-      <h3>🗓 Last 7 Days</h3>
-      <div style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
-        {days.map((d) => (
-          <div
-            key={d.key}
-            style={{
-              width: 20,
-              height: 20,
-              background: d.done ? "#22c55e" : "#e2e8f0",
-              borderRadius: 4
-            }}
-            title={d.label}
-          ></div>
-        ))}
+    <div className="calendar-view">
+      <h4>📆 Garden Activity</h4>
+      <div className="calendar-grid">
+        {days.map((day) => {
+          const key = format(day, "yyyy-MM-dd");
+          const active = sessionDates.includes(key);
+          return (
+            <div key={key} className={`calendar-cell ${active ? "active" : ""}`}>
+              {format(day, "d")}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

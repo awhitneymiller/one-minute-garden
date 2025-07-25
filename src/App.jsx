@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import "./index.css";
@@ -16,14 +17,10 @@ import {
 import { allPlants } from "./data/plants";
 import { generateForecast } from "./logic/generateForecast";
 import { generateGoals } from "./logic/generateGoals";
-import { getRandomChallenge } from "./logic/mindfulnessChallenges";
-import { calculateMood } from "./logic/calculateMood";
 
 import Auth from "./components/Auth";
-import DebugMenu from "./components/DebugMenu";
 import WeatherForecast from "./components/WeatherForecast";
 import SeedInventory from "./components/SeedInventory";
-import StoryPanel from "./components/StoryPanel";
 import Journal from "./components/Journal";
 import PlantCard from "./components/PlantCard";
 import MapView from "./components/MapView";
@@ -33,187 +30,148 @@ import CalendarView from "./components/CalendarView";
 import ThemeToggle from "./components/ThemeToggle";
 import MusicPlayer from "./components/MusicPlayer";
 import ShopView from "./components/ShopView";
+import WaterMiniGame from "./components/MiniGames/WaterMiniGame";
 
 export default function App() {
+  // --- Starter seeds definition ---
+  const starterSeeds = allPlants.slice(0, 3).map(({ id, name, image }) => ({
+    id,
+    name,
+    image,
+  }));
+
+  // --- State ---
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-
-  const starterSeeds = allPlants.slice(0, 3).map(({ id, name }) => ({ id, name }));
   const [inventory, setInventory] = useState(starterSeeds);
   const [plantedPlants, setPlantedPlants] = useState([]);
   const [view, setView] = useState("garden");
-
-  const [journal, setJournal] = useState("");
-  const [forecast, setForecast] = useState(generateForecast());
-  const [dailyGoals, setDailyGoals] = useState(generateGoals());
-
+  const [forecast] = useState(generateForecast());
+  const [dailyGoals] = useState(generateGoals());
   const [coins, setCoins] = useState(0);
-  const [xp, setXp] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("omg-theme") || "light"
+  );
 
-  const [theme, setTheme] = useState(() => localStorage.getItem("omg-theme") || "light");
+  // Mini-game
+  const [activeMiniGame, setActiveMiniGame] = useState(null);
+  const [activePlantId, setActivePlantId] = useState(null);
 
-  const [challenge, setChallenge] = useState(() => {
-    const stored = localStorage.getItem("omg-mindfulness");
-    return stored ? JSON.parse(stored) : getRandomChallenge();
-  });
-  const [challengeComplete, setChallengeComplete] = useState(false);
-  const [today, setToday] = useState(() => format(new Date(), "yyyy-MM-dd"));
-
+  // --- Persist theme ---
   useEffect(() => {
     document.body.dataset.theme = theme;
     localStorage.setItem("omg-theme", theme);
   }, [theme]);
 
+  // --- Auth + Firestore load & starter-seed fallback ---
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setAuthChecked(true);
-      if (u) {
-        setUser(u);
-        const ref = doc(db, "users", u.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const d = snap.data();
-          const mergedInventory = [
-            ...starterSeeds,
-            ...(d.inventory || []).filter((item) => !starterSeeds.find((s) => s.id === item.id)),
-          ];
-          setInventory(mergedInventory);
-          setPlantedPlants(
-            (d.plantedPlants || []).map((p, i) => ({
-              ...p,
-              instanceId: p.instanceId || `${p.id}-${i}`,
-              mood: p.mood || "happy",
-              lastCareTime: p.lastCareTime || Date.now(),
-              waterLevel: p.waterLevel ?? 100,
-            }))
-          );
-          setCoins(d.coins || 0);
-          setXp(d.xp || 0);
-        } else {
-          const init = {
-            inventory: starterSeeds,
-            plantedPlants: [],
-            coins: 0,
-            xp: 0,
-          };
-          await setDoc(ref, init);
-        }
-      } else {
+      if (!u) {
         setUser(null);
+        return;
+      }
+      setUser(u);
+      const ref = doc(db, "users", u.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const d = snap.data();
+        // if inventory empty, use starterSeeds and update Firestore
+        if (!d.inventory || d.inventory.length === 0) {
+          setInventory(starterSeeds);
+          await updateDoc(ref, { inventory: starterSeeds });
+        } else {
+          setInventory(d.inventory);
+        }
+        setPlantedPlants(d.plantedPlants || []);
+        setCoins(d.coins || 0);
+        setStreak(d.streak || 0);
+      } else {
+        // first-time user: init with starterSeeds
+        const init = {
+          inventory: starterSeeds,
+          plantedPlants: [],
+          coins: 0,
+          streak: 0,
+        };
+        await setDoc(ref, init);
+        setInventory(starterSeeds);
       }
     });
     return unsub;
   }, []);
 
+  // --- Save back to Firestore when relevant state changes ---
   useEffect(() => {
     if (!user) return;
-    updateDoc(doc(db, "users", user.uid), {
+    const ref = doc(db, "users", user.uid);
+    updateDoc(ref, {
       inventory,
       plantedPlants,
       coins,
-      xp,
+      streak,
     }).catch(console.error);
-  }, [user, inventory, plantedPlants, coins, xp]);
+  }, [user, inventory, plantedPlants, coins, streak]);
 
-  useEffect(() => {
-    const current = format(new Date(), "yyyy-MM-dd");
-    if (current !== today) {
-      setToday(current);
-      setChallenge(getRandomChallenge());
-      setChallengeComplete(false);
-    }
-  }, [today]);
-
-  useEffect(() => {
-    localStorage.setItem("omg-mindfulness", JSON.stringify(challenge));
-  }, [challenge]);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setPlantedPlants((plants) =>
-        plants.map((p) => ({
-          ...p,
-          waterLevel: Math.max(0, (p.waterLevel ?? 100) - 2), // fast decay
-          mood: calculateMood(p),
-        }))
-      );
-    }, 60000);
-    return () => clearInterval(id);
-  }, []);
-
-  if (!authChecked) return null;
-  if (!user) return <Auth />;
-
-  function plantSeed(p) {
-    setInventory((inv) => inv.filter((i) => i.id !== p.id));
+  // --- Handlers ---
+  function plantSeed(seed) {
+    setInventory((inv) => inv.filter((i) => i.id !== seed.id));
     setPlantedPlants((plants) => [
       ...plants,
       {
-        ...p,
+        ...seed,
         stage: 0,
-        watered: false,
-        fertilized: false,
-        rewarded: false,
-        mood: "happy",
         waterLevel: 100,
-        lastCareTime: Date.now(),
-        instanceId: `${p.id}-${Date.now()}`,
+        mood: "happy",
+        instanceId: `${seed.id}-${Date.now()}`,
       },
     ]);
   }
 
-  function handleWater(instanceId) {
+  function handleWater(id) {
+    setActivePlantId(id);
+    setActiveMiniGame("water");
+  }
+
+  function handleFertilize(id) {
     setPlantedPlants((plants) =>
       plants.map((p) =>
-        p.instanceId === instanceId
-          ? {
-              ...p,
-              waterLevel: 100,
-              lastCareTime: Date.now(),
-              mood: "happy",
-            }
+        p.instanceId === id
+          ? { ...p, stage: Math.min(3, p.stage + 1), mood: "radiant" }
           : p
       )
     );
   }
 
-  function handleFertilize(instanceId) {
-    setPlantedPlants((plants) =>
-      plants.map((p) =>
-        p.instanceId === instanceId && !p.fertilized
-          ? {
-              ...p,
-              fertilized: true,
-              stage: Math.min(3, p.stage + 1),
-              lastCareTime: Date.now(),
-              mood: "radiant",
-            }
-          : p
-      )
-    );
+  function handleSell(id) {
+    setPlantedPlants((plants) => plants.filter((p) => p.instanceId !== id));
+    setCoins((c) => c + 10);
   }
 
-  function handleSell(instanceId) {
-    setPlantedPlants((plants) => {
-      const sold = plants.find((p) => p.instanceId === instanceId);
-      if (sold && sold.stage === 3) setCoins((c) => c + 10);
-      return plants.filter((p) => p.instanceId !== instanceId);
-    });
-  }
+  // --- Render guard ---
+  if (!authChecked) return null;
+  if (!user) return <Auth />;
 
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>🌿 One Minute Garden</h1>
         <nav className="nav">
-          {["garden", "map", "recipes", "shop"].map((v) => (
-            <button key={v} className={view === v ? "active" : ""} onClick={() => setView(v)}>
-              {v}
-            </button>
-          ))}
+          {["garden", "map", "recipes", "calendar", "journal", "shop"].map(
+            (v) => (
+              <button
+                key={v}
+                className={view === v ? "active" : ""}
+                onClick={() => setView(v)}
+              >
+                {v}
+              </button>
+            )
+          )}
         </nav>
         <ThemeToggle theme={theme} setTheme={setTheme} />
-        <MusicPlayer />
         <button className="logout-btn" onClick={() => signOut(auth)}>
           Log Out
         </button>
@@ -230,21 +188,9 @@ export default function App() {
             </ul>
           </section>
 
-          <section className="card mindfulness">
-            <h3>🧘 Mindfulness</h3>
-            <p>{challenge.text}</p>
-            {challengeComplete ? (
-              <p className="complete-msg">✅ Completed today</p>
-            ) : (
-              <button
-                onClick={() => {
-                  setChallengeComplete(true);
-                  setCoins((c) => c + 5);
-                }}
-              >
-                Mark as Complete
-              </button>
-            )}
+          <section className="card forecast">
+            <WeatherForecast forecast={forecast} />
+            <StreakDisplay streak={streak} />
           </section>
 
           <section className="card inventory">
@@ -274,7 +220,9 @@ export default function App() {
 
       {view === "map" && (
         <main className="single-pane">
-          <MapView bloomCount={plantedPlants.filter((p) => p.stage === 3).length} />
+          <MapView
+            bloomCount={plantedPlants.filter((p) => p.stage === 3).length}
+          />
         </main>
       )}
 
@@ -284,15 +232,52 @@ export default function App() {
         </main>
       )}
 
+      {view === "calendar" && (
+        <main className="single-pane">
+          <CalendarView sessionDates={[]} />
+        </main>
+      )}
+
+      {view === "journal" && (
+        <main className="single-pane">
+          <Journal />
+        </main>
+      )}
+
       {view === "shop" && (
         <main className="single-pane">
           <ShopView
-            inventory={inventory}
-            setInventory={setInventory}
             coins={coins}
             setCoins={setCoins}
+            inventory={inventory}
+            setInventory={setInventory}
           />
         </main>
+      )}
+
+      <MusicPlayer />
+
+      {activeMiniGame === "water" && (
+        <WaterMiniGame
+          onResult={(result) => {
+            setActiveMiniGame(null);
+            setPlantedPlants((plants) =>
+              plants.map((p) =>
+                p.instanceId === activePlantId
+                  ? {
+                      ...p,
+                      waterLevel: result === "fail" ? p.waterLevel : 100,
+                      mood: result === "perfect" ? "radiant" : "happy",
+                      stage:
+                        result === "perfect" && p.stage < 3
+                          ? p.stage + 1
+                          : p.stage,
+                    }
+                  : p
+              )
+            );
+          }}
+        />
       )}
     </div>
   );

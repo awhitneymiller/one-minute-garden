@@ -1,4 +1,3 @@
-// src/components/PlantCard.jsx
 import React from "react";
 
 const moodEmoji = {
@@ -7,15 +6,23 @@ const moodEmoji = {
   sleepy: "😴",
   lonely: "🥺",
   radiant: "🌟",
-  default: "🙂",
+  default: "🙂"
 };
 
-export default function PlantCard({ plant, onWater, onFertilize, onSell }) {
+export default function PlantCard({
+  plant,
+  onWater,
+  onFertilize,
+  onSell
+}) {
   const stageNames = ["Seed", "Sprout", "Bud", "Bloom"];
   const stagePercent = (plant.stage / 3) * 100;
   const water = plant.waterLevel ?? 100;
-  const imagePath = `/assets/plants/${plant.name.replace(/\s+/g, "").toLowerCase()}.png`;
   const mood = plant.mood || "happy";
+
+  const imagePath = `/assets/plants/${plant.name
+    .toLowerCase()
+    .replace(/\s+/g, "")}.png`;
 
   return (
     <div className="plant-card">
@@ -23,25 +30,34 @@ export default function PlantCard({ plant, onWater, onFertilize, onSell }) {
       <p>Stage: {stageNames[plant.stage]}</p>
       <p>Mood: {moodEmoji[mood] || moodEmoji.default}</p>
 
-      {plant.stage === 3 ? (
-        <img src={imagePath} alt={plant.name} className="plant-img" />
-      ) : (
-        <div className="placeholder">{stageNames[plant.stage]}</div>
-      )}
+      <img
+        src={imagePath}
+        alt={plant.name}
+        className="plant-img"
+        onError={(e) => (e.target.style.display = "none")}
+      />
 
       <div className="meter-label">💧 Water</div>
       <div className="meter-bar">
-        <div className="meter-fill water" style={{ width: `${Math.round(water)}%` }} />
+        <div
+          className="meter-fill water"
+          style={{ width: `${Math.max(0, Math.min(100, water))}%` }}
+        />
       </div>
 
       <div className="meter-label">🌱 Growth</div>
       <div className="meter-bar">
-        <div className="meter-fill growth" style={{ width: `${stagePercent}%` }} />
+        <div
+          className="meter-fill growth"
+          style={{ width: `${Math.min(100, stagePercent)}%` }}
+        />
       </div>
 
-      <button onClick={() => onWater(plant)}>💦 Water</button>
-      <button onClick={() => onFertilize(plant)}>🌿 Fertilize</button>
-      {plant.stage === 3 && <button onClick={() => onSell(plant)}>💰 Sell</button>}
+      <button onClick={() => onWater(plant.instanceId)}>💦 Water</button>
+      <button onClick={() => onFertilize(plant.instanceId)}>🌿 Fertilize</button>
+      {plant.stage === 3 && (
+        <button onClick={() => onSell(plant.instanceId)}>💰 Sell</button>
+      )}
     </div>
   );
 }
