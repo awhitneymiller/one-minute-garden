@@ -3,8 +3,9 @@ import React from "react";
 import "./PlantCard.css";
 import { allPlants } from "../data/plants";
 
-// ← add this line:
+
 const BASE = import.meta.env.BASE_URL || "/";
+
 
 function getRecipeStep(plant) {
   const def = allPlants.find(p => p.id === plant.id);
@@ -35,12 +36,9 @@ export default function PlantCard({
     <div className="plant-card-container">
       <h4>{name}</h4>
 
-      {/* use BASE_URL to build the correct public path */}
-      <img
-        src={BASE + image.replace(/^\//, "")}
-        alt={name}
-        className="plant-img"
-      />
+      {/*please work*/}
+      <img src={image} alt={name} className="plant-img" />
+
 
       <p><strong>Stage:</strong> {stageLabel}</p>
       <p><strong>Mood:</strong> {isWilted ? "😢" : "😊"}</p>
