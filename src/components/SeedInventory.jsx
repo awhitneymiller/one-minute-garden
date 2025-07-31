@@ -12,9 +12,12 @@ export default function SeedInventory({ inventory, onPlant }) {
           {inventory.map(seed => (
             <li key={seed.id}>
               {seed.name}{" "}
-              <button onClick={() => onPlant(seed)}>
-                Plant
-              </button>
+             <button
+              className="pill-button"
+              onClick={() => onPlant(seed)}
+            >
+              Plant
+             </button>
             </li>
           ))}
         </ul>
