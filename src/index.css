@@ -1,12 +1,23 @@
-@import './index.css';
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.app-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+
+}
 
 /* ==========================================================================
-   Variables & Themes
+  Variables & Themes
    ========================================================================== */
 :root {
-  --bg: #b9cfc3;
+  --bg: #b4e0c8;
   --fg: #374151;
-  --panel: #ffffff;
+  --panel: #b4e2be;
   --accent: #5a8028;
   --accent-hover: #36700f;
   --primary-light: #8eaa92;
@@ -27,12 +38,19 @@
 }
 
 /* Biome Themes */
-.map-meadow    { --bg:#ecfdf5; --panel:#fff; --primary:#34d399; --primary-light:#d1fae5; }
-.map-grove     { --bg:#ecfeff; --panel:#f0fdfa; --primary:#2dd4bf; --primary-light:#cffafe; }
-.map-cliffside { --bg:#eff6ff; --panel:#f8fafc; --primary:#3b82f6; --primary-light:#e0f2fe; }
+.map-meadow    { --bg:#b1dab3; --panel:#ffffff; --primary:#0d3619; --primary-light:#d1fae5; }
+.map-grove     { --bg:#f3f0e1; --panel:#83a082; --primary:#2dd4bf; --primary-light:#cffafe; }
+.map-cliffside { --bg:#b2e7fc; --panel:#f8fafc; --primary:#3b82f6; --primary-light:#e0f2fe; }
 .map-greenhouse{ --bg:#f7fee7; --panel:#fbfefc; --primary:#84cc16; --primary-light:#f0fdf4; }
 .map-cavern    { --bg:#eff8ff; --panel:#f3fafe; --primary:#0ea5e9; --primary-light:#f0f9ff; }
 .map-lunar     { --bg:#f5f3ff; --panel:#faf5ff; --primary:#c084fc; --primary-light:#faf5ff; }
+
+[data-theme="dark"] .map-meadow    { --bg:#485e50; --panel:#85a08b; --primary:#67867a; --primary-light:#9fc9a4; }
+[data-theme="dark"] .map-grove     { --bg:#70634c; --panel:#92a080; --primary:#5eead4; --primary-light:#134e4a; }
+[data-theme="dark"] .map-cliffside { --bg:#1e293b; --panel:#273449; --primary:#60a5fa; --primary-light:#1e40af; }
+[data-theme="dark"] .map-greenhouse{ --bg:#26341a; --panel:#2d3a1f; --primary:#bef264; --primary-light:#365314; }
+[data-theme="dark"] .map-cavern    { --bg:#1e293b; --panel:#22303d; --primary:#38bdf8; --primary-light:#0e7490; }
+[data-theme="dark"] .map-lunar     { --bg:#312e81; --panel:#3b3666; --primary:#a78bfa; --primary-light:#6d28d9; }
 
 /* ==========================================================================
    Weather Edge-Tint Overlays
@@ -40,6 +58,7 @@
 .app-container {
   position: relative;
   overflow: hidden;
+  background: var(--bg);
 }
 
 /* Sunny → warm gold edges */
@@ -50,8 +69,8 @@
   /* transparent center → color at edges */
   background: radial-gradient(
     circle,
-    transparent 60%,
-    rgba(255, 223, 107, 0.3) 100%
+    transparent 80%,
+    rgba(255, 223, 107, 0.664) 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -64,8 +83,8 @@
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 60%,
-    rgba(93, 173, 226, 0.3) 100%
+    transparent 80%,
+    rgba(71, 138, 182, 0.651) 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -78,8 +97,8 @@
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 60%,
-    rgba(200, 200, 200, 0.3) 100%
+    transparent 80%,
+    rgba(158, 171, 184, 0.637) 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -92,8 +111,8 @@
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 60%,
-    rgba(245, 245, 250, 0.3) 100%
+    transparent 80%,
+    rgba(250, 250, 250, 0.705) 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -106,8 +125,8 @@
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 60%,
-    rgba(180, 210, 255, 0.3) 100%
+    transparent 80%,
+    rgba(149, 255, 255, 0.61) 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -120,8 +139,8 @@
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 60%,
-    rgba(180, 180, 200, 0.3) 100%
+    transparent 80%,
+    rgba(202, 202, 248, 0.541) 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -366,6 +385,15 @@ body {
 }
 .map-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.map-list button.active {
+  text-decoration: underline;
+}
+
+.map-display {
+  text-align: center;
+  font-size: 1.25rem;
+}
+
 /* ==========================================================================
    Plant Recipes
    ========================================================================== */
@@ -528,7 +556,6 @@ body {
   .dashboard { grid-template-columns: 1fr; }
 }
 
-
 /* ==========================================================================
   Mini-Game Styles
    ========================================================================== */
@@ -573,6 +600,9 @@ body {
   transition: left 0.03s;
 }
 
+.map-list { display: flex; gap: 1rem; margin-bottom: 2rem; }
+.map-list button.active { text-decoration: underline; }
+.map-display { text-align: center; font-size: 1.25rem; }
 
 
 

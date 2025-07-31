@@ -1,33 +1,33 @@
 // src/components/MapView.jsx
 export default function MapView({ bloomCount, currentMap, onSelectMap }) {
-  const regions = [
-    { id: "meadow",    name: "Meadow",    required: 0 },
-    { id: "grove",     name: "Grove",     required: 2 },
-    { id: "cliffside", name: "Cliffside", required: 5 },
-    { id: "greenhouse",name: "Greenhouse",required: 10 },
-    { id: "cavern",    name: "Crystal Cavern", required: 15 },
-    { id: "lunar",     name: "Lunar Lake",    required: 20 }
+  const maps = [
+    { id: "meadow",    label: "Meadow",    unlockAt: 0 },
+    { id: "grove",     label: "Grove",     unlockAt: 2 },
+    { id: "cliffside", label: "Cliffside", unlockAt: 10 },
+    { id: "greenhouse",label: "Greenhouse",unlockAt: 15 },
+    { id: "cavern",    label: "Cavern",    unlockAt: 25 },
+    { id: "lunar",     label: "Lunar Lake",unlockAt: 50 }
   ];
 
   return (
-    <div className="panel map-selector">
-      <h3>🗺️ World Map</h3>
+    <div>
       <ul className="map-list">
-        {regions.map(r => {
-          const unlocked = bloomCount >= r.required;
+        {maps.map(m => {
+          const locked = bloomCount < m.unlockAt;
           return (
-            <li key={r.id}>
+            <li key={m.id}>
               <button
-                className={`map-btn ${currentMap === r.id ? "active" : ""}`}
-                disabled={!unlocked}
-                onClick={() => unlocked && onSelectMap(r.id)}
+                className={`map-btn ${currentMap === m.id ? "active" : ""}`}
+                disabled={locked}
+                onClick={() => !locked && onSelectMap(m.id)}
               >
-                {r.name}
+                {m.label}
               </button>
             </li>
           );
         })}
       </ul>
+      {/* map art here once i have it */}
     </div>
   );
 }

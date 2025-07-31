@@ -52,8 +52,8 @@ export default function App() {
   const [forecast] = useState(generateForecast());  // 5-day random weather forecast
   const [dailyGoals, setDailyGoals] = useState(generateGoals());
   const [coins, setCoins] = useState(0);
+  const [totalBlooms, setTotalBlooms] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [theme, setTheme] = useState(() => localStorage.getItem("omg-theme") || "light");
 
   // Gameplay states
   const [harmony, setHarmony] = useState(0);
@@ -64,6 +64,11 @@ export default function App() {
   const [journalEntry, setJournalEntry] = useState("");
   const [activeMiniGame, setActiveMiniGame] = useState(null);
   const [activePlantId, setActivePlantId] = useState(null);
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("omg-theme") || "light"
+  );
+  // 🔧 1. Add loaded state
+  const [loaded, setLoaded] = useState(false);
 
   // --- Persist theme preference ---
   useEffect(() => {
@@ -77,6 +82,7 @@ export default function App() {
       setAuthChecked(true);
       if (!u) {
         setUser(null);
+        setLoaded(false); // Reset loaded if logged out
         return;
       }
       setUser(u);
@@ -131,13 +137,15 @@ export default function App() {
         setPlantedPlants(plants);
         setCoins(d.coins || 0);
         setStreak(d.streak || 0);
+        setTotalBlooms(d.totalBlooms || 0);
       } else {
-        // First-time user: initialize document with starter seeds and defaults
+        // first-time user:
         const initData = {
           inventory: starterSeeds,
           plantedPlants: [],
           coins: 0,
           streak: 0,
+          totalBlooms: 0,
           items: { premiumFertilizer: 0, compost: 0, potions: 0 },
           journal: {}
         };
@@ -149,23 +157,28 @@ export default function App() {
         setItems({ premiumFertilizer: 0, compost: 0, potions: 0 });
         setJournalEntries({});
         setJournalEntry("");
+        setTotalBlooms(0);
       }
+      // 🔧 2. Set loaded true after all state is set
+      setLoaded(true);
     });
     return unsub;
   }, []);
 
   // --- Save state back to Firestore on changes ---
   useEffect(() => {
-    if (!user) return;
+    // 🔧 3. Only save if loaded
+    if (!user || !loaded) return;
     const ref = doc(db, "users", user.uid);
     updateDoc(ref, {
       inventory,
       plantedPlants,
       coins,
       streak,
-      items
+      items,
+      totalBlooms,
     }).catch(console.error);
-  }, [user, inventory, plantedPlants, coins, streak, items]);
+  }, [user, inventory, plantedPlants, coins, streak, items, totalBlooms, loaded]);
 
   // --- Handlers --- !!!!!!!!!!!!!
   function plantSeed(seed) {
@@ -387,8 +400,7 @@ export default function App() {
   if (!user) return <Auth />;
 
   return (
-    <div
-      className={`app-container map-${currentMap} weather-${forecast[0].name
+    <div className={`app-container map-${currentMap} weather-${forecast[0].name
         .toLowerCase()
         .replace(/\s+/g, "-")}`}
     >
@@ -464,7 +476,7 @@ export default function App() {
       {view === "map" && (
         <main className="single-pane">
           <MapView
-            bloomCount={plantedPlants.filter(p => p.stage === 3).length}
+            bloomCount={totalBlooms}
             currentMap={currentMap}
             onSelectMap={setCurrentMap}
           />
@@ -517,112 +529,141 @@ export default function App() {
 
       <MusicPlayer />
 
-      {/* Mini-game overlays */}
-      {activeMiniGame === "water" && (
-        <WaterMiniGame
-          onResult={result => {
-            console.log("Water result:", result);
-            setActiveMiniGame(null);
+{/* Mini-game overlays */}
+{activeMiniGame === "water" && (
+  <WaterMiniGame
+    onResult={result => {
+      console.log("Water result:", result);
+      setActiveMiniGame(null);
 
-            setPlantedPlants(plants =>
-              plants.map(p =>
-                p.instanceId === activePlantId
-                  ? {
-                      ...p,
-                      waterLevel: result === "fail" ? p.waterLevel : 100,
-                      mood: result === "perfect" ? "radiant" : "happy",
-                      stage:
-                        result === "perfect" && p.stage < 3
-                          ? (forecast[0].name === "Cold Snap" && p.stage === 2
-                              ? 2
-                              : p.stage + 1)
-                          : p.stage,
-                      lastCareTime:
-                        result === "fail" ? p.lastCareTime : Date.now()
-                    }
-                  : p
-              )
+      // 1) grab previous stage
+      const prevStage =
+        plantedPlants.find(p => p.instanceId === activePlantId)?.stage ?? 0;
+
+      // 2) compute new stage (respecting Cold Snap)
+      let newStage = prevStage;
+      if (result !== "fail" && prevStage < 3) {
+        newStage =
+          forecast[0].name === "Cold Snap" && prevStage === 2
+            ? 2
+            : prevStage + 1;
+      }
+
+      // 3) update that one plant
+      setPlantedPlants(ps =>
+        ps.map(p =>
+          p.instanceId === activePlantId
+            ? {
+                ...p,
+                waterLevel: result === "fail" ? p.waterLevel : 100,
+                mood: result === "perfect" ? "radiant" : "happy",
+                stage: newStage,
+                lastCareTime:
+                  result === "fail" ? p.lastCareTime : Date.now(),
+              }
+            : p
+        )
+      );
+
+      // 4) if we just crossed into bloom, bump totalBlooms
+      if (prevStage < 3 && newStage === 3) {
+        setTotalBlooms(tb => tb + 1);
+      }
+
+      // 5) your existing points/harmony/dailyGoals logic
+      if (result !== "fail") {
+        setWaterCount(c => c + 1);
+        let points = result === "perfect" ? 10 : 5;
+        if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+        if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+        setHarmony(h => {
+          const newH = Math.min(100, h + points);
+          if (newH >= 90)
+            setDailyGoals(gs =>
+              gs.map(g => (g.id === 3 ? { ...g, completed: true } : g))
             );
+          return newH;
+        });
+        setDailyGoals(gs =>
+          gs.map(g =>
+            g.id === 1 && !g.completed && waterCount + 1 >= 3
+              ? { ...g, completed: true }
+              : g
+          )
+        );
+      }
+    }}
+  />
+)}
 
-            if (result !== "fail") {
-              setWaterCount(c => c + 1);
-              let points = result === "perfect" ? 10 : 5;
-              if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-              if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
-              setHarmony(h => {
-                const newH = Math.min(100, h + points);
-                if (newH >= 90)
-                  setDailyGoals(gs =>
-                    gs.map(g => (g.id === 3 ? { ...g, completed: true } : g))
-                  );
-                return newH;
-              });
-              setDailyGoals(gs =>
-                gs.map(g =>
-                  g.id === 1 && !g.completed && waterCount + 1 >= 3
-                    ? { ...g, completed: true }
-                    : g
-                )
-              );
-            }
-          }}
-        />
-      )}
+{activeMiniGame === "fertilize" && (
+  <FertilizeMiniGame
+    onResult={result => {
+      console.log("Fertilize result:", result);
+      setActiveMiniGame(null);
 
-      {activeMiniGame === "fertilize" && (
-        <FertilizeMiniGame
-          onResult={result => {
-            console.log("Fertilize result:", result);
-            setActiveMiniGame(null);
+      // 1) grab previous stage
+      const prevStage =
+        plantedPlants.find(p => p.instanceId === activePlantId)?.stage ?? 0;
 
-            setPlantedPlants(plants =>
-              plants.map(p =>
-                p.instanceId === activePlantId
-                  ? {
-                      ...p,
-                      mood:
-                        result === "fail"
-                          ? p.mood
-                          : result === "perfect"
-                          ? "radiant"
-                          : "happy",
-                      stage:
-                        result !== "fail" && p.stage < 3
-                          ? (forecast[0].name === "Cold Snap" && p.stage === 2
-                              ? 2
-                              : Math.min(3, p.stage + 1))
-                          : p.stage,
-                      lastCareTime:
-                        result === "fail" ? p.lastCareTime : Date.now()
-                    }
-                  : p
-              )
+      // 2) compute new stage (respecting Cold Snap)
+      let newStage = prevStage;
+      if (result !== "fail" && prevStage < 3) {
+        newStage =
+          forecast[0].name === "Cold Snap" && prevStage === 2
+            ? 2
+            : prevStage + 1;
+      }
+
+      // 3) update that one plant
+      setPlantedPlants(ps =>
+        ps.map(p =>
+          p.instanceId === activePlantId
+            ? {
+                ...p,
+                stage: newStage,
+                mood:
+                  result === "perfect"
+                    ? "radiant"
+                    : result === "okay"
+                    ? "happy"
+                    : p.mood,
+                lastCareTime: Date.now(),
+              }
+            : p
+        )
+      );
+
+      // 4) if we just crossed into bloom, bump totalBlooms
+      if (prevStage < 3 && newStage === 3) {
+        setTotalBlooms(tb => tb + 1);
+      }
+
+      // 5) your existing points/harmony/dailyGoals logic
+      if (result !== "fail") {
+        setFertilizeCount(c => c + 1);
+        let points = result === "perfect" ? 8 : 5;
+        if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+        if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+        setHarmony(h => {
+          const newH = Math.min(100, h + points);
+          if (newH >= 90)
+            setDailyGoals(gs =>
+              gs.map(g => (g.id === 3 ? { ...g, completed: true } : g))
             );
-
-            if (result !== "fail") {
-              setFertilizeCount(c => c + 1);
-              let points = result === "perfect" ? 8 : 5;
-              if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-              if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
-              setHarmony(h => {
-                const newH = Math.min(100, h + points);
-                if (newH >= 90)
-                  setDailyGoals(gs =>
-                    gs.map(g => (g.id === 3 ? { ...g, completed: true } : g))
-                  );
-                return newH;
-              });
-              setDailyGoals(gs =>
-                gs.map(g =>
-                  g.id === 2 && !g.completed && fertilizeCount + 1 >= 2
-                    ? { ...g, completed: true }
-                    : g
-                )
-              );
-            }
-          }}
-        />
-      )}
-    </div>
+          return newH;
+        });
+        setDailyGoals(gs =>
+          gs.map(g =>
+            g.id === 2 && !g.completed && fertilizeCount + 1 >= 2
+              ? { ...g, completed: true }
+              : g
+          )
+        );
+      }
+    }}
+  />
+)}
+  </div>
   );
 }
