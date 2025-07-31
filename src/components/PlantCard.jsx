@@ -3,6 +3,9 @@ import React from "react";
 import "./PlantCard.css";
 import { allPlants } from "../data/plants";
 
+// ← add this line:
+const BASE = import.meta.env.BASE_URL || "/";
+
 function getRecipeStep(plant) {
   const def = allPlants.find(p => p.id === plant.id);
   return def?.growthRecipe?.[plant.stage];
@@ -13,7 +16,7 @@ export default function PlantCard({
   onWater,
   onFertilize,
   onPremiumFertilize,
-  onCompost,           // ← add this
+  onCompost,
   onSell,
   onRevive,
   onCraft,
@@ -31,97 +34,67 @@ export default function PlantCard({
   return (
     <div className="plant-card-container">
       <h4>{name}</h4>
-      <img src={image} alt={name} className="plant-img" />
+
+      {/* use BASE_URL to build the correct public path */}
+      <img
+        src={BASE + image.replace(/^\//, "")}
+        alt={name}
+        className="plant-img"
+      />
 
       <p><strong>Stage:</strong> {stageLabel}</p>
       <p><strong>Mood:</strong> {isWilted ? "😢" : "😊"}</p>
 
       <div className="meter-label">💧 Water</div>
       <div className="meter-bar">
-        <div className="meter-fill water" style={{ width: `${waterLevel}%` }} />
+        <div
+          className="meter-fill water"
+          style={{ width: `${waterLevel}%` }}
+        />
       </div>
 
       <div className="action-buttons">
-  {/* 1) Growing plants (stage 0–2) always show all care buttons */}
-  {!isWilted && stage < 3 && (
-    <>
-      {/* Standard watering */}
-      <button
-        className="pill-button"
-        onClick={() => onWater(instanceId)}
-      >
-        Water
-      </button>
+        {!isWilted && stage < 3 && (
+          <>
+            <button className="pill-button" onClick={() => onWater(instanceId)}>
+              Water
+            </button>
+            <button className="pill-button" onClick={() => onFertilize(instanceId)}>
+              Fertilize
+            </button>
+            {hasPremium > 0 && (
+              <button className="pill-button" onClick={() => onPremiumFertilize(instanceId)}>
+                🥇 Premium
+              </button>
+            )}
+            {hasCompost > 0 && (
+              <button className="pill-button" onClick={() => onCompost(instanceId)}>
+                🍂 Compost
+              </button>
+            )}
+            <button className="pill-button" onClick={() => onWeatherAction(instanceId)}>
+              Weather
+            </button>
+          </>
+        )}
 
-      {/* Standard fertilizer */}
-      <button
-        className="pill-button"
-        onClick={() => onFertilize(instanceId)}
-      >
-        Fertilize
-      </button>
+        {isWilted && (
+          <>
+            <button className="pill-button" onClick={() => onRevive(instanceId)}>
+              ✨ Revive
+            </button>
+            <button className="pill-button" onClick={() => onCraft(instanceId)}>
+              🍂 Turn into Compost
+            </button>
+          </>
+        )}
 
-      {/* Premium fertilizer (only if they have one) */}
-      {hasPremium > 0 && (
-        <button
-          className="pill-button"
-          onClick={() => onPremiumFertilize(instanceId)}
-        >
-          🥇 Premium
-        </button>
-      )}
-
-{/* compost-on-plant button */}
-{!isWilted && stage < 3 && hasCompost > 0 && (
-  <button
-    className="pill-button"
-    onClick={() => onCompost(instanceId)}
-  >
-    🍂 Compost
-  </button>
-)}
-
-
-
-      {/* Weather‐trigger (always visible for growing plants) */}
-      <button
-        className="pill-button"
-        onClick={() => onWeatherAction(instanceId)}
-      >
-        Weather
-      </button>
-    </>
-  )}
-
-  {/* 2) Wilted plants: Revive or turn into compost */}
-  {isWilted && (
-    <>
-      <button
-        className="pill-button"
-        onClick={() => onRevive(instanceId)}
-      >
-        ✨ Revive
-      </button>
-      <button
-        className="pill-button"
-        onClick={() => onCraft(instanceId)}
-      >
-        🍂 Turn into Compost
-      </button>
-    </>
-  )}
-
-  {/* 3) Fully bloomed plants: Sell */}
-  {stage === 3 && !isWilted && (
-    <button
-      className="pill-button"
-      onClick={() => onSell(instanceId)}
-    >
-      💰 Sell
-    </button>
-  )}
-</div>
-
+        {stage === 3 && !isWilted && (
+          <button className="pill-button" onClick={() => onSell(instanceId)}>
+            💰 Sell
+          </button>
+        )}
+      </div>
     </div>
   );
 }

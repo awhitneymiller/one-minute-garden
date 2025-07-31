@@ -122,7 +122,7 @@ export default function App() {
         plants = plants.map(p => {
           let newPlant = { ...p };
           const minutesSinceCare = (now - (p.lastCareTime || now)) / 60000;
-          // Decrease water level over time (linear to 0 over 24h)
+          // Decrease water level over time (linear to 0 over 10minutes)
           let newWaterLevel = p.waterLevel ?? 100;
           if (minutesSinceCare >= 10) {
             newWaterLevel = 0;

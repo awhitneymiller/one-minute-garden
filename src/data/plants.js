@@ -7,7 +7,7 @@ export const allPlants = [
   {
     id: "pink-flower",
     name: "Pink Flower",
-    image: "src/assets/plants/flower4_pink.png",
+    image: "/plants/flower4_pink.png",
     cost: 5,
     sellValue: 10,
     rarity: "common",
@@ -23,7 +23,7 @@ export const allPlants = [
   {
     id: "blue-flower",
     name: "Blue Flower",
-    image: "src/assets/plants/flower3_blue.png",
+    image: "/plants/flower3_blue.png",
     cost: 5,
     sellValue: 10,
     rarity: "common",
@@ -38,7 +38,7 @@ export const allPlants = [
   {
     id: "red-bush",
     name: "Red Bush",
-    image: "src/assets/plants/bush2_red.png",
+    image: "/plants/bush2_red.png",
     cost: 12,
     sellValue: 15,
     rarity: "common",
@@ -53,7 +53,7 @@ export const allPlants = [
   {
     id: "green-bush",
     name: "Green Bush",
-    image: "src/assets/plants/bush1(noflowers)_green.png",
+    image: "/plants/bush1(noflowers)_green.png",
     cost: 12,
     sellValue: 15,
     rarity: "common",
@@ -68,7 +68,7 @@ export const allPlants = [
   {
     id: "yellow-daisy",
     name: "Yellow Daisy",
-    image: "src/assets/plants/flower1_yellow.png",
+    image: "/plants/flower1_yellow.png",
     cost: 15,
     sellValue: 19,
     rarity: "uncommon",
@@ -83,7 +83,7 @@ export const allPlants = [
   {
     id: "small-purple-flowers",
     name: "Small Purple Flowers",
-    image: "src/assets/plants/flower13_purple.png",
+    image: "/plants/flower13_purple.png",
     cost: 20,
     sellValue: 28,
     rarity: "uncommon",
@@ -98,7 +98,7 @@ export const allPlants = [
   {
     id: "small-yellow-flowers",
     name: "Small Yellow Flowers",
-    image: "src/assets/plants/flower13_yellow.png",
+    image: "/plants/flower13_yellow.png",
     cost: 25,
     sellValue: 37,
     rarity: "rare",
@@ -113,7 +113,7 @@ export const allPlants = [
   {
     id: "moonflowers",
     name: "Moonflowers",
-    image: "src/assets/plants/flower1_colorful.png",
+    image: "/plants/flower1_colorful.png",
     cost: 40,
     sellValue: 60,
     rarity: "rare",
@@ -128,7 +128,7 @@ export const allPlants = [
   {
     id: "starpetal",
     name: "Starpetal",
-    image: "src/assets/plants/flower9_yellow.png",
+    image: "/plants/flower9_yellow.png",
     cost: 60,
     sellValue: 78,
     rarity: "legendary",
@@ -143,7 +143,7 @@ export const allPlants = [
   {
     id: "pink-spirit-flower",
     name: "Pink Spirit Flower",
-    image: "src/assets/plants/flower2_pink.png",
+    image: "/plants/flower2_pink.png",
     cost: 65,
     sellValue: 85,
     rarity: "legendary",
