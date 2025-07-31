@@ -23,7 +23,7 @@ export default function PlantCard({
   hasPremium,
   hasCompost
 }) {
-  const { instanceId, name, image, stage, waterLevel, mood } = plant;
+  const { instanceId, name, image /* ← this is now the imported URL */, stage, waterLevel, mood } = plant;
   const isWilted = mood === "wilted";
   const step     = getRecipeStep(plant);
 
@@ -35,8 +35,7 @@ export default function PlantCard({
       <h4>{name}</h4>
 
       {/*please work*/}
-      <img src={plant.image} alt={plant.name} className="plant-img" />
-
+      <img src={image} alt={name} className="plant-img" />
 
       <p><strong>Stage:</strong> {stageLabel}</p>
       <p><strong>Mood:</strong> {isWilted ? "😢" : "😊"}</p>
