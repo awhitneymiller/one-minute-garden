@@ -1,8 +1,6 @@
 // src/App.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import "./index.css";
-
 import {
   auth,
   db,
@@ -11,10 +9,12 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
+  updateDoc
 } from "./firebase";
-
 import { allPlants } from "./data/plants";
+import { weatherEvents } from "./data/weather";
+import { storyBeats } from "./data/story";
+import { journalUnlockables } from "./data/journalUnlockables";
 import { generateForecast } from "./logic/generateForecast";
 import { generateGoals } from "./logic/generateGoals";
 
@@ -31,13 +31,14 @@ import ThemeToggle from "./components/ThemeToggle";
 import MusicPlayer from "./components/MusicPlayer";
 import ShopView from "./components/ShopView";
 import WaterMiniGame from "./components/MiniGames/WaterMiniGame";
+import FertilizeMiniGame from "./components/MiniGames/FertilizeMiniGame";
 
 export default function App() {
-  // --- Starter seeds definition ---
+  // --- Starter seeds (first 3 defined in allPlants) ---
   const starterSeeds = allPlants.slice(0, 3).map(({ id, name, image }) => ({
     id,
     name,
-    image,
+    image
   }));
 
   // --- State ---
@@ -46,25 +47,30 @@ export default function App() {
   const [inventory, setInventory] = useState(starterSeeds);
   const [plantedPlants, setPlantedPlants] = useState([]);
   const [view, setView] = useState("garden");
-  const [forecast] = useState(generateForecast());
-  const [dailyGoals] = useState(generateGoals());
+  const [currentMap, setCurrentMap] = useState("meadow");
+  const [forecast] = useState(generateForecast());  // 5-day random weather forecast
+  const [dailyGoals, setDailyGoals] = useState(generateGoals());
   const [coins, setCoins] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("omg-theme") || "light"
-  );
+  const [theme, setTheme] = useState(() => localStorage.getItem("omg-theme") || "light");
 
-  // Mini-game
+  // Gameplay states
+  const [harmony, setHarmony] = useState(0);
+  const [waterCount, setWaterCount] = useState(0);
+  const [fertilizeCount, setFertilizeCount] = useState(0);
+  const [items, setItems] = useState({ premiumFertilizer: 0, compost: 0, potions: 0 });
+  const [journalEntries, setJournalEntries] = useState({});
+  const [journalEntry, setJournalEntry] = useState("");
   const [activeMiniGame, setActiveMiniGame] = useState(null);
   const [activePlantId, setActivePlantId] = useState(null);
 
-  // --- Persist theme ---
+  // --- Persist theme preference ---
   useEffect(() => {
     document.body.dataset.theme = theme;
     localStorage.setItem("omg-theme", theme);
   }, [theme]);
 
-  // --- Auth + Firestore load & starter-seed fallback ---
+  // --- Auth & Firestore initial load ---
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setAuthChecked(true);
@@ -75,35 +81,79 @@ export default function App() {
       setUser(u);
       const ref = doc(db, "users", u.uid);
       const snap = await getDoc(ref);
-
       if (snap.exists()) {
         const d = snap.data();
-        // if inventory empty, use starterSeeds and update Firestore
+        // Inventory and starter seeds setup
         if (!d.inventory || d.inventory.length === 0) {
           setInventory(starterSeeds);
           await updateDoc(ref, { inventory: starterSeeds });
         } else {
           setInventory(d.inventory);
         }
-        setPlantedPlants(d.plantedPlants || []);
+        // Load items or initialize
+        const loadedItems = d.items || { premiumFertilizer: 0, compost: 0, potions: 0 };
+        setItems(loadedItems);
+        // Load journal entries
+        const loadedJournal = d.journal || {};
+        setJournalEntries(loadedJournal);
+        // Populate today's journal entry if already exists
+        const todayKey = format(new Date(), "yyyy-MM-dd");
+        setJournalEntry(loadedJournal[todayKey] || "");
+        // Load planted plants and apply time-based effects (water depletion, wilting)
+        let plants = d.plantedPlants || [];
+        const now = Date.now();
+        plants = plants.map(p => {
+          let newPlant = { ...p };
+          const minutesSinceCare = (now - (p.lastCareTime || now)) / 60000;
+          // Decrease water level over time (linear to 0 over 24h)
+          let newWaterLevel = p.waterLevel ?? 100;
+          if (minutesSinceCare >= 1440) {
+            newWaterLevel = 0;
+          } else if (minutesSinceCare >= 0) {
+            const proportion = Math.min(1, minutesSinceCare / 1440);
+            newWaterLevel = Math.max(0, Math.floor(100 * (1 - proportion)));
+          }
+          // Weather effect: Rainy day fully hydrates plants
+          if (forecast[0].name === "Rainy") {
+            newWaterLevel = 100;
+            newPlant.lastCareTime = now;  // rain acts as care event
+          }
+          newPlant.waterLevel = newWaterLevel;
+          // Check for wilting (no care > 48h)
+          if (minutesSinceCare > 2880) {
+            newPlant.stage = 4;
+            newPlant.mood = "wilted";
+            newPlant.waterLevel = 0;
+          }
+          return newPlant;
+        });
+        setPlantedPlants(plants);
         setCoins(d.coins || 0);
         setStreak(d.streak || 0);
       } else {
-        // first-time user: init with starterSeeds
-        const init = {
+        // First-time user: initialize document with starter seeds and defaults
+        const initData = {
           inventory: starterSeeds,
           plantedPlants: [],
           coins: 0,
           streak: 0,
+          items: { premiumFertilizer: 0, compost: 0, potions: 0 },
+          journal: {}
         };
-        await setDoc(ref, init);
+        await setDoc(ref, initData);
         setInventory(starterSeeds);
+        setPlantedPlants([]);
+        setCoins(0);
+        setStreak(0);
+        setItems({ premiumFertilizer: 0, compost: 0, potions: 0 });
+        setJournalEntries({});
+        setJournalEntry("");
       }
     });
     return unsub;
   }, []);
 
-  // --- Save back to Firestore when relevant state changes ---
+  // --- Save state back to Firestore on changes ---
   useEffect(() => {
     if (!user) return;
     const ref = doc(db, "users", user.uid);
@@ -112,21 +162,29 @@ export default function App() {
       plantedPlants,
       coins,
       streak,
+      items
     }).catch(console.error);
-  }, [user, inventory, plantedPlants, coins, streak]);
+  }, [user, inventory, plantedPlants, coins, streak, items]);
 
   // --- Handlers ---
   function plantSeed(seed) {
-    setInventory((inv) => inv.filter((i) => i.id !== seed.id));
-    setPlantedPlants((plants) => [
+    // Only allow up to 3 plants in garden at once
+    if (plantedPlants.length >= 3) {
+      alert("You can have at most 3 plants in your garden.");
+      return;
+    }
+    // Remove seed from inventory and plant it
+    setInventory(inv => inv.filter(i => i.id !== seed.id));
+    setPlantedPlants(plants => [
       ...plants,
       {
         ...seed,
         stage: 0,
         waterLevel: 100,
         mood: "happy",
-        instanceId: `${seed.id}-${Date.now()}`,
-      },
+        lastCareTime: Date.now(),
+        instanceId: `${seed.id}-${Date.now()}`
+      }
     ]);
   }
 
@@ -136,40 +194,167 @@ export default function App() {
   }
 
   function handleFertilize(id) {
-    setPlantedPlants((plants) =>
-      plants.map((p) =>
+    // If user has premium fertilizer, they may choose to use it instead
+    // (Premium option is provided as a separate button in UI)
+    setActivePlantId(id);
+    setActiveMiniGame("fertilize");
+  }
+
+  function handleSell(id) {
+    // Remove plant and reward coins for a fully bloomed plant
+    setPlantedPlants(plants => plants.filter(p => p.instanceId !== id));
+    const def = allPlants.find(pl => pl.id === id);
+    const reward = def?.sellValue ?? 0;
+    setCoins(c => c + reward);
+  }
+
+  function handleRemove(id) {
+    // Remove a wilted plant (no coin reward)
+    setPlantedPlants(plants => plants.filter(p => p.instanceId !== id));
+  }
+
+  function handleRevive(id) {
+    // Use a Spirit Potion (if available) or 20 coins to revive a wilted plant
+    if (items.potions > 0) {
+      setItems(prev => ({ ...prev, potions: prev.potions - 1 }));
+    } else if (coins >= 20) {
+      setCoins(c => c - 20);
+    } else {
+      alert("Not enough resources to revive this plant (need a Spirit Potion or 20 coins).");
+      return;
+    }
+    setPlantedPlants(plants =>
+      plants.map(p =>
         p.instanceId === id
-          ? { ...p, stage: Math.min(3, p.stage + 1), mood: "radiant" }
+          ? {
+              ...p,
+              stage: 3,
+              mood: "radiant",
+              waterLevel: 100,
+              lastCareTime: Date.now()
+            }
           : p
       )
     );
   }
 
-  function handleSell(id) {
-    setPlantedPlants((plants) => plants.filter((p) => p.instanceId !== id));
-    setCoins((c) => c + 10);
+  function handlePremiumFertilize(id) {
+    // Instantly use premium fertilizer on the plant (skip mini-game, guaranteed boost)
+    if (items.premiumFertilizer <= 0) return;
+    setItems(prev => ({ ...prev, premiumFertilizer: prev.premiumFertilizer - 1 }));
+    setPlantedPlants(plants =>
+      plants.map(p =>
+        p.instanceId === id
+          ? {
+              ...p,
+              stage: p.stage < 3 ? Math.min(3, p.stage + 1) : p.stage,
+              mood: "radiant",
+              lastCareTime: Date.now()
+            }
+          : p
+      )
+    );
+    // Count as a fertilize action
+    setFertilizeCount(count => count + 1);
+    // Add harmony points (treat as perfect fertilize)
+    let points = 8;
+    if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+    if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+    setHarmony(h => {
+      const newH = Math.min(100, h + points);
+      if (newH >= 90) {
+        setDailyGoals(goals =>
+          goals.map(g => (g.id === 3 ? { ...g, completed: true } : g))
+        );
+      }
+      return newH;
+    });
+    // Complete fertilize goal if threshold reached
+    setDailyGoals(goals =>
+      goals.map(g =>
+        g.id === 2 && !g.completed && fertilizeCount + 1 >= 2
+          ? { ...g, completed: true }
+          : g
+      )
+    );
   }
 
-  // --- Render guard ---
+  function handleSaveJournal() {
+    const todayKey = format(new Date(), "yyyy-MM-dd");
+    // Save entry to Firestore journal field
+    const ref = doc(db, "users", user.uid);
+    updateDoc(ref, { [`journal.${todayKey}`]: journalEntry }).catch(console.error);
+    // Update local journal entries and calendar
+    setJournalEntries(prev => ({ ...prev, [todayKey]: journalEntry }));
+    // Check for special keyword unlocks in the entry
+    const entryText = journalEntry.toLowerCase();
+    journalUnlockables.forEach(({ keyword, unlockedItem }) => {
+      if (entryText.includes(keyword)) {
+        // Unlock the special seed if not already in inventory or garden
+        const alreadyHas =
+          inventory.some(s => s.id === unlockedItem.id) ||
+          plantedPlants.some(p => p.id === unlockedItem.id);
+        if (!alreadyHas) {
+          setInventory(inv => [
+            ...inv,
+            { id: unlockedItem.id, name: unlockedItem.name }
+          ]);
+          alert(`✨ A mysterious seed (${unlockedItem.name}) has been revealed in your inventory!`);
+          // Optional lore message from a garden spirit
+          if (unlockedItem.name === "Moonflower") {
+            alert(storyBeats[2]); // "A new sprout carries the scent of someone you once knew."
+          } else if (unlockedItem.name === "Starpetal") {
+            alert(storyBeats[4]); // "Something is watching your garden blossom with care."
+          }
+        }
+      }
+    });
+    // Update streak count for consecutive daily journaling
+    setStreak(prev => {
+      const yesterdayKey = format(Date.now() - 86400000, "yyyy-MM-dd");
+      let newStreak = 1;
+      if (journalEntries[yesterdayKey]) {
+        newStreak = prev + 1;
+      }
+      return newStreak;
+    });
+    // Mark daily goal for journaling as completed
+    setDailyGoals(goals =>
+      goals.map(g =>
+        g.id === 4 ? { ...g, completed: true } : g
+      )
+    );
+    // Grant harmony points for reflection
+    setHarmony(h => {
+      const newH = Math.min(100, h + 10);
+      if (newH >= 90) {
+        setDailyGoals(goals =>
+          goals.map(g => (g.id === 3 ? { ...g, completed: true } : g))
+        );
+      }
+      return newH;
+    });
+    alert("Journal entry saved! 🌱");
+  }
+
+  // --- Guard before render ---
   if (!authChecked) return null;
   if (!user) return <Auth />;
 
   return (
-    <div className="app-container">
+    <div className={`app-container map-${currentMap}`}>
       <header className="app-header">
         <h1>🌿 One Minute Garden</h1>
         <nav className="nav">
-          {["garden", "map", "recipes", "calendar", "journal", "shop"].map(
-            (v) => (
-              <button
-                key={v}
-                className={view === v ? "active" : ""}
-                onClick={() => setView(v)}
-              >
-                {v}
-              </button>
-            )
-          )}
+          {["garden", "map", "recipes", "calendar", "journal", "shop"].map(v => (
+            <button
+              key={v}
+              className={view === v ? "active" : ""}
+              onClick={() => setView(v)}
+            >
+              {v}
+            </button>
+          ))}
         </nav>
         <ThemeToggle theme={theme} setTheme={setTheme} />
         <button className="logout-btn" onClick={() => signOut(auth)}>
@@ -182,8 +367,11 @@ export default function App() {
           <section className="card goals">
             <h3>🎯 Daily Goals</h3>
             <ul>
-              {dailyGoals.map((g) => (
-                <li key={g.id}>{g.description}</li>
+              {dailyGoals.map(g => (
+                <li key={g.id} className={g.completed ? "done" : ""}>
+                  {g.completed ? "✅ " : ""}
+                  {g.description}
+                </li>
               ))}
             </ul>
           </section>
@@ -203,13 +391,17 @@ export default function App() {
               <p className="empty">Your garden is empty. Plant seeds!</p>
             ) : (
               <div className="plant-grid">
-                {plantedPlants.map((p) => (
+                {plantedPlants.map(p => (
                   <PlantCard
                     key={p.instanceId}
                     plant={p}
                     onWater={handleWater}
                     onFertilize={handleFertilize}
+                    onPremiumFertilize={handlePremiumFertilize}
                     onSell={handleSell}
+                    onRevive={handleRevive}
+                    onRemove={handleRemove}
+                    hasPremium={items.premiumFertilizer > 0}
                   />
                 ))}
               </div>
@@ -221,7 +413,9 @@ export default function App() {
       {view === "map" && (
         <main className="single-pane">
           <MapView
-            bloomCount={plantedPlants.filter((p) => p.stage === 3).length}
+            bloomCount={plantedPlants.filter(p => p.stage === 3).length}
+            currentMap={currentMap}
+            onSelectMap={setCurrentMap}
           />
         </main>
       )}
@@ -234,13 +428,17 @@ export default function App() {
 
       {view === "calendar" && (
         <main className="single-pane">
-          <CalendarView sessionDates={[]} />
+          <CalendarView sessionDates={Object.keys(journalEntries)} />
         </main>
       )}
 
       {view === "journal" && (
         <main className="single-pane">
-          <Journal />
+          <Journal
+            journal={journalEntry}
+            setJournal={setJournalEntry}
+            onSave={handleSaveJournal}
+          />
         </main>
       )}
 
@@ -251,33 +449,119 @@ export default function App() {
             setCoins={setCoins}
             inventory={inventory}
             setInventory={setInventory}
+            items={items}
+            setItems={setItems}
           />
         </main>
       )}
 
       <MusicPlayer />
 
+      {/* Mini-game overlays */}
       {activeMiniGame === "water" && (
-        <WaterMiniGame
-          onResult={(result) => {
-            setActiveMiniGame(null);
-            setPlantedPlants((plants) =>
-              plants.map((p) =>
-                p.instanceId === activePlantId
-                  ? {
-                      ...p,
-                      waterLevel: result === "fail" ? p.waterLevel : 100,
-                      mood: result === "perfect" ? "radiant" : "happy",
-                      stage:
-                        result === "perfect" && p.stage < 3
-                          ? p.stage + 1
-                          : p.stage,
-                    }
-                  : p
-              )
-            );
-          }}
-        />
+        <div className="minigame-overlay">
+          <WaterMiniGame
+            onResult={result => {
+              setActiveMiniGame(null);
+              setPlantedPlants(plants =>
+                plants.map(p =>
+                  p.instanceId === activePlantId
+                    ? {
+                        ...p,
+                        waterLevel: result === "fail" ? p.waterLevel : 100,
+                        mood: result === "perfect" ? "radiant" : "happy",
+                        stage:
+                          result === "perfect" && p.stage < 3
+                            ? // Prevent bloom during Cold Snap
+                              forecast[0].name === "Cold Snap" && p.stage === 2
+                              ? 2
+                              : p.stage + 1
+                            : p.stage,
+                        lastCareTime: result === "fail" ? p.lastCareTime : Date.now()
+                      }
+                    : p
+                )
+              );
+              if (result !== "fail") {
+                setWaterCount(c => c + 1);
+                let points = result === "perfect" ? 10 : 5;
+                if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+                if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+                setHarmony(h => {
+                  const newH = Math.min(100, h + points);
+                  if (newH >= 90) {
+                    setDailyGoals(goals =>
+                      goals.map(g => (g.id === 3 ? { ...g, completed: true } : g))
+                    );
+                  }
+                  return newH;
+                });
+                setDailyGoals(goals =>
+                  goals.map(g =>
+                    g.id === 1 && !g.completed && waterCount + 1 >= 3
+                      ? { ...g, completed: true }
+                      : g
+                  )
+                );
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {activeMiniGame === "fertilize" && (
+        <div className="minigame-overlay">
+          <FertilizeMiniGame
+            onResult={result => {
+              setActiveMiniGame(null);
+              setPlantedPlants(plants =>
+                plants.map(p =>
+                  p.instanceId === activePlantId
+                    ? {
+                        ...p,
+                        mood:
+                          result === "fail"
+                            ? p.mood
+                            : result === "perfect"
+                            ? "radiant"
+                            : "happy",
+                        stage:
+                          result !== "fail" && p.stage < 3
+                            ? // Prevent bloom during Cold Snap
+                              forecast[0].name === "Cold Snap" && p.stage === 2
+                              ? 2
+                              : Math.min(3, p.stage + 1)
+                            : p.stage,
+                        lastCareTime: result === "fail" ? p.lastCareTime : Date.now()
+                      }
+                    : p
+                )
+              );
+              if (result !== "fail") {
+                setFertilizeCount(c => c + 1);
+                let points = result === "perfect" ? 8 : 5;
+                if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+                if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+                setHarmony(h => {
+                  const newH = Math.min(100, h + points);
+                  if (newH >= 90) {
+                    setDailyGoals(goals =>
+                      goals.map(g => (g.id === 3 ? { ...g, completed: true } : g))
+                    );
+                  }
+                  return newH;
+                });
+                setDailyGoals(goals =>
+                  goals.map(g =>
+                    g.id === 2 && !g.completed && fertilizeCount + 1 >= 2
+                      ? { ...g, completed: true }
+                      : g
+                  )
+                );
+              }
+            }}
+          />
+        </div>
       )}
     </div>
   );

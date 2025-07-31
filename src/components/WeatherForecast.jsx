@@ -1,7 +1,8 @@
+// src/components/WeatherForecast.jsx
 export default function WeatherForecast({ forecast }) {
   return (
-    <div style={{ marginTop: '2rem', maxWidth: '700px', margin: 'auto' }}>
-      <h3 style={{ color: '#4b5563' }}>🌤 Weather Forecast</h3>
+    <div style={{ marginTop: "2rem", maxWidth: "700px", margin: "auto" }}>
+      <h3 style={{ color: "#4b5563" }}>🌤 Weather Forecast</h3>
       <ul>
         {forecast.map((f, i) => (
           <li key={i}>

@@ -1,4 +1,4 @@
-
+// src/components/SeedInventory.jsx
 import React from "react";
 
 export default function SeedInventory({ inventory, onPlant }) {
@@ -9,10 +9,10 @@ export default function SeedInventory({ inventory, onPlant }) {
         <p>No seeds yet. Complete sessions or find drops!</p>
       ) : (
         <ul className="seed-list">
-          {inventory.map(p => (
-            <li key={p.id}>
-              {p.name}{" "}
-              <button onClick={() => onPlant(p)}>
+          {inventory.map(seed => (
+            <li key={seed.id}>
+              {seed.name}{" "}
+              <button onClick={() => onPlant(seed)}>
                 Plant
               </button>
             </li>

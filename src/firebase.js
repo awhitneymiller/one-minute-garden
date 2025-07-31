@@ -19,7 +19,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyA6csT7G7OZ5t7p69SEgbhjgEsCn8QC76w",
   authDomain: "gardengame-5953f.firebaseapp.com",
   projectId: "gardengame-5953f",
-  storageBucket: "gardengame-5953f.firebasestorage.app",
+  storageBucket: "gardengame-5953f.appspot.com",
   messagingSenderId: "324380478391",
   appId: "1:324380478391:web:bd70f9294a1a48c10ab632"
 };

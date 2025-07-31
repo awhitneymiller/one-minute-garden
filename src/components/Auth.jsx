@@ -40,14 +40,14 @@ export default function Auth() {
         type="email"
         placeholder="Email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={e => setEmail(e.target.value)}
         style={{ width: "100%", padding: ".5rem", marginBottom: ".5rem" }}
       />
       <input
         type="password"
         placeholder="Password"
         value={pass}
-        onChange={(e) => setPass(e.target.value)}
+        onChange={e => setPass(e.target.value)}
         style={{ width: "100%", padding: ".5rem", marginBottom: ".5rem" }}
       />
       <button onClick={handleAuth} style={{ width: "100%", padding: ".5rem" }}>

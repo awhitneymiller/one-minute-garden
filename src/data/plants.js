@@ -1,35 +1,84 @@
+// src/data/plants.js
 export const allPlants = [
   {
-    id: "flower3-pink",
+    id: "pink-flower",
     name: "Pink Flower",
-    type: "flower3",
-    variant: "pink",
-    cost: 10,
-    image: "/assets/plants/flower3-pink.png"
+    image: "src/assets/plants/flower4_pink.png",
+    cost: 5,
+    sellValue: 10,
+    rarity: "common",
   },
   {
-    id: "flower3-blue",
+    id: "blue-flower",
     name: "Blue Flower",
-    type: "flower3",
-    variant: "blue",
-    cost: 10,
-    image: "/assets/plants/flower3-blue.png"
+    image: "src/assets/plants/flower3_blue.png",
+    cost: 5,
+    sellValue: 10,
+    rarity: "common",
   },
   {
-    id: "bush1-red",
+    id: "red-bush",
     name: "Red Bush",
-    type: "bush1",
-    variant: "red",
-    cost: 10,
-    image: "/assets/plants/bush1-red.png"
+    image: "src/assets/plants/bush2_red.png",
+    cost: 12,
+    sellValue: 15,
+    rarity: "common",
   },
   {
-    id: "bush1-green",
+    id: "green-bush",
     name: "Green Bush",
-    type: "bush1",
-    variant: "green",
-    cost: 10,
-    image: "/assets/plants/bush1-green.png"
-  }
-  // Add more as needed
+    image: "src/assets/plants/bush1(noflowers)_green.png",
+    cost: 12,
+    sellValue: 15,
+    rarity: "common",
+  },
+
+  {
+    id: "yellow-daisy",
+    name: "Yellow Daisy",
+    image: "src/assets/plants/flower1_yellow.png",
+    cost: 15,
+    sellValue: 19,
+    rarity: "uncommon",
+  },
+  {
+    id: "small-purple-flowers",
+    name: "Small Purple Flowers",
+    image: "src/assets/plants/flower13_purple.png",
+    cost: 20,
+    sellValue: 28,
+    rarity: "uncommon",
+  },
+  {
+    id: "small-yellow-flowers",
+    name: "Small Yellow Flowers",
+    image: "src/assets/plants/flower13_yellow.png",
+    cost: 25,
+    sellValue: 37,
+    rarity: "rare",
+  },
+  {
+    id: "moonflowers",
+    name: "Moonflowers",
+    image: "src/assets/plants/flower1_colorful.png",
+    cost: 40,
+    sellValue: 60,
+    rarity: "rare",
+  },
+  {
+    id: "starpetal",
+    name: "Starpetal",
+    image: "src/assets/plants/flower9_yellow.png",
+    cost: 60,
+    sellValue: 78,
+    rarity: "legendary",
+  },
+  {
+    id: "pink-spirit-flower",
+    name: "Pink Spirit Flower",
+    image: "src/assets/plants/flower2_pink.png",
+    cost: 65,
+    sellValue: 85,
+    rarity: "legendary",
+  },
 ];

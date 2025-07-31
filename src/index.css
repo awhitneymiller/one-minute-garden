@@ -1,10 +1,21 @@
+/* ==========================================================================
+   Variables & Themes
+   ========================================================================== */
 :root {
   --bg: #eefcf4;
   --fg: #374151;
   --panel: #ffffff;
   --accent: #22c55e;
   --accent-hover: #16a34a;
+  --primary-light: #d1fae5;
+  --primary: #10b981;
+  --primary-dark: #065f46;
+
+  --card-radius: 1rem;
+  --card-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --font-family: "Segoe UI", system-ui, sans-serif;
 }
+
 [data-theme="dark"] {
   --bg: #1f2937;
   --fg: #e5e7eb;
@@ -13,189 +24,429 @@
   --accent-hover: #0d9488;
 }
 
+/* Biome Themes */
+.map-meadow    { --bg:#ecfdf5; --panel:#fff; --primary:#34d399; --primary-light:#d1fae5; }
+.map-grove     { --bg:#ecfeff; --panel:#f0fdfa; --primary:#2dd4bf; --primary-light:#cffafe; }
+.map-cliffside { --bg:#eff6ff; --panel:#f8fafc; --primary:#3b82f6; --primary-light:#e0f2fe; }
+.map-greenhouse{ --bg:#f7fee7; --panel:#fbfefc; --primary:#84cc16; --primary-light:#f0fdf4; }
+.map-cavern    { --bg:#eff8ff; --panel:#f3fafe; --primary:#0ea5e9; --primary-light:#f0f9ff; }
+.map-lunar     { --bg:#f5f3ff; --panel:#faf5ff; --primary:#c084fc; --primary-light:#faf5ff; }
+
+/* ==========================================================================
+   Reset & Global
+   ========================================================================== */
+* { box-sizing: border-box; margin:0; padding:0; }
 body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
   background: var(--bg);
   color: var(--fg);
+  font-family: var(--font-family);
+  line-height: 1.5;
 }
 
-/* header */
+/* ==========================================================================
+   Header & Navigation
+   ========================================================================== */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1rem;
+  padding: 1rem 2rem;
   background: var(--accent);
   color: white;
+  box-shadow: var(--card-shadow);
 }
+
+.app-header h1 { font-size: 1.5rem; }
+
 .nav {
   display: flex;
-  gap: 0.3rem;
-}
-.nav button {
-  background: white;
-  color: var(--accent);
-  border: none;
-  padding: 0.3rem 0.8rem;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.nav button.active,
-.nav button:hover {
-  background: var(--accent-hover);
-  color: white;
-}
-.logout-btn {
-  background: #ef4444;
-  border: none;
-  color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-/* --- dashboard grid --- */
-.dashboard {
-  max-width: 1200px;
-  margin: 1rem auto;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: auto;
-  gap: 1rem;
-}
-
-.card {
-  background: var(--panel);
-  padding: 1rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-.controls { display: flex; align-items: center; gap: 1rem; }
-.stats { display: flex; flex-direction: column; gap: 0.5rem; }
-.plant-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
   gap: 0.5rem;
 }
-.empty { color:#6b7280; font-style: italic; }
 
-/* full‑width for journal */
-.journal { grid-column: span 2; }
-
-/* single‑pane views */
-.single-pane {
-  max-width: 960px;
-  margin: 1rem auto;
-  padding: 1rem;
-}
-
-.minigame {
-  background: #fff;
-  padding: 1rem;
-  border: 2px solid #aaa;
-  border-radius: 12px;
-  width: 300px;
-  margin: 1rem auto;
-  text-align: center;
-}
-
-.bar-container {
-  position: relative;
-  width: 100%;
-  height: 20px;
-  background: #eee;
-  margin: 1rem 0;
-  cursor: pointer;
-  border-radius: 10px;
-}
-
-.bar-fill {
-  position: absolute;
-  top: 0;
-  width: 10%;
-  height: 100%;
-  background: #2196f3;
-  border-radius: 10px;
-  transition: left 0.03s;
-}
-
-.target {
-  position: absolute;
-  top: 0;
-  left: 40%;
-  width: 20%;
-  height: 100%;
-  background: rgba(76, 175, 80, 0.4); /* green */
-}
-.shop {
-  padding: 1rem;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.shop-tabs button {
-  margin-right: 0.5rem;
+.nav button {
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 8px;
-  background: #c7f2d2;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.3);
+  color: white;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
-.shop-tabs button.active {
-  background: #93e9be;
+.nav button.active,
+.nav button:hover {
+  background: white;
+  color: var(--accent);
 }
 
-.shop-grid {
+.logout-btn,
+.theme-toggle {
+  padding: 0.5rem 1rem;
+  margin-left: 1rem;
+  border: none;
+  border-radius: var(--card-radius);
+  background: rgba(255,255,255,0.3);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logout-btn:hover,
+.theme-toggle:hover {
+  background: white;
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Big Cards & Dashboard Layout
+   ========================================================================== */
+.dashboard {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+  gap: 1.5rem;
+}
+
+.card,
+.big-card {
+  background: var(--panel);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover,
+.big-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.card h3,
+.big-card h3 { margin-bottom: 1rem; font-size: 1.25rem; }
+
+/* ==========================================================================
+   Goals & Forecast Lists
+   ========================================================================== */
+.goals ul,
+.forecast ul {
+  list-style: none;
+}
+
+.goals li,
+.forecast li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.goals li::before,
+.forecast li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Seed Inventory
+   ========================================================================== */
+.card.inventory ul {
+  list-style: none;
+}
+
+.card.inventory li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   Garden Grid & Plant Cards
+   ========================================================================== */
+.plant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
-.shop-item {
-  background: #fff;
-  border: 1px solid #ccc;
-  padding: 0.8rem;
-  border-radius: 10px;
-  text-align: center;
+.plant-card-container {
+  background: var(--panel);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--primary-light);
+  box-shadow: var(--card-shadow);
+  padding: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.plant-recipes {
+.plant-card-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+.plant-img {
+  width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+.meter-label {
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.meter-bar {
+  width: 100%;
+  height: 10px;
+  background: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.meter-fill {
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+}
+
+.meter-fill.water { background: #4fc3f7; }
+.meter-fill.growth { background: #81c784; }
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+.empty {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Single-Pane (Map, Recipe, Calendar, Journal, Shop)
+   ========================================================================== */
+.single-pane {
+  max-width: 960px;
+  margin: 2rem auto;
   padding: 1rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  padding: 1rem;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 1.5rem;
+}
+
+/* ==========================================================================
+   MapView Buttons
+   ========================================================================== */
+.map-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.map-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+  color: var(--primary-dark);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.map-btn.active,
+.map-btn:disabled {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.map-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ==========================================================================
+   Plant Recipes
+   ========================================================================== */
+.plant-recipes {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 0 auto 2rem;
+  padding: 1rem;
 }
 
 .recipes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
   gap: 1rem;
 }
 
 .recipe-card {
-  border: 1px solid #ccc;
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
   padding: 0.8rem;
-  border-radius: 8px;
-  background: #fff;
   text-align: center;
+  box-shadow: var(--card-shadow);
 }
+
+/* ==========================================================================
+   Calendar View
+   ========================================================================== */
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7,1fr);
   gap: 4px;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .calendar-cell {
+  background: #f0f0f0;
+  padding: 0.5rem;
+  border-radius: var(--card-radius);
   text-align: center;
-  padding: 4px;
-  border-radius: 4px;
-  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 .calendar-cell.active {
-  background-color: #c8e6c9;
+  background: var(--primary-light);
   font-weight: bold;
+}
+
+/* ==========================================================================
+   Journal View
+   ========================================================================== */
+.journal {
+  margin-top: 1rem;
+}
+
+.journal textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 0.75rem;
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  font-family: var(--font-family);
+  resize: vertical;
+}
+
+.journal .save-btn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--card-radius);
+  cursor: pointer;
+}
+
+.journal .entries-list {
+  margin-top: 2rem;
+}
+
+.journal .entries-list li {
+  padding: 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Shop View
+   ========================================================================== */
+.shop {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.shop-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.shop-tabs button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+  color: var(--primary-dark);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.shop-tabs button.active,
+.shop-tabs button:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-dark);
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+  gap: 1rem;
+}
+
+.shop-item-card {
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  padding: 0.8rem;
+  text-align: center;
+  box-shadow: var(--card-shadow);
+}
+
+.shop-img {
+  width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   Mini-Game Overlay
+   ========================================================================== */
+.minigame-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+}
+
+.minigame {
+  background: var(--panel);
+  padding: 1rem;
+  border-radius: var(--card-radius);
+  text-align: center;
+  box-shadow: var(--card-shadow);
+}
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 600px) {
+  .app-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .nav { flex-wrap: wrap; }
+  .dashboard { grid-template-columns: 1fr; }
 }

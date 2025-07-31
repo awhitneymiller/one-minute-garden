@@ -1,25 +1,58 @@
-.shop-view {
+/* src/components/ShopView.css */
+.shop {
   padding: 1rem;
-  color: var(--text-color);
+  max-width: 600px;
+  margin: 0 auto;
 }
-
-.shop-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.shop-item {
-  border: 1px solid var(--border);
-  padding: 0.5rem;
+.shop-tabs button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
   border-radius: 8px;
-  background: var(--bg-light);
-  width: 140px;
+  background: #c7f2d2;
+  cursor: pointer;
+}
+.shop-tabs button.active {
+  background: #93e9be;
+}
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.shop-item {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 0.8rem;
+  border-radius: 10px;
   text-align: center;
 }
 
-.shop-item img {
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.shop-item-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shop-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.shop-img {
   width: 100%;
-  height: auto;
+  max-height: 80px;
   object-fit: contain;
+  margin-bottom: 0.5rem;
 }

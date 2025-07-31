@@ -1,3 +1,4 @@
+// src/data/story.js
 export const storyBeats = [
   "You find an old, forgotten garden journal in your mailbox...",
   "The garden whispers to you in your dreams: 'We remember you.'",
