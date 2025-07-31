@@ -68,6 +68,7 @@ export default function App() {
   const [items, setItems] = useState({ premiumFertilizer: 0, compost: 0, potions: 0 });
   const [journalEntries, setJournalEntries] = useState({});
   const [journalEntry, setJournalEntry] = useState("");
+  const [dailyStats, setDailyStats] = useState({});
   const [activeMiniGame, setActiveMiniGame] = useState(null);
   const [activePlantId, setActivePlantId] = useState(null);
   const [theme, setTheme] = useState(
@@ -93,7 +94,7 @@ export default function App() {
       }
       setUser(u);
       const ref = doc(db, "users", u.uid);
-      const snap = await getDoc(ref);
+      const snap = await getDoc(ref);   
       if (snap.exists()) {
         const d = snap.data();
         // Inventory and starter seeds setup
@@ -109,6 +110,9 @@ export default function App() {
         // Load journal entries
         const loadedJournal = d.journal || {};
         setJournalEntries(loadedJournal);
+        // Load any saved per-day stats
+        const loadedStats = d.dailyStats || {};
+        setDailyStats(loadedStats);
         // Populate today's journal entry if already exists
         const todayKey = format(new Date(), "yyyy-MM-dd");
         setJournalEntry(loadedJournal[todayKey] || "");
@@ -120,10 +124,10 @@ export default function App() {
           const minutesSinceCare = (now - (p.lastCareTime || now)) / 60000;
           // Decrease water level over time (linear to 0 over 24h)
           let newWaterLevel = p.waterLevel ?? 100;
-          if (minutesSinceCare >= 1440) {
+          if (minutesSinceCare >= 10) {
             newWaterLevel = 0;
           } else if (minutesSinceCare >= 0) {
-            const proportion = Math.min(1, minutesSinceCare / 1440);
+            const proportion = Math.min(1, minutesSinceCare / 10);
             newWaterLevel = Math.max(0, Math.floor(100 * (1 - proportion)));
           }
           // Weather effect: Rainy day fully hydrates plants
@@ -189,6 +193,7 @@ export default function App() {
       streak,
       items,
       totalBlooms,
+      dailyStats,
     }).catch(console.error);
   }, [user, inventory, plantedPlants, coins, streak, items, totalBlooms, loaded]);
 
@@ -225,26 +230,39 @@ export default function App() {
     setActiveMiniGame("water");
   }
 
-  function handleCompost(id) {
+function handleCompost(id) {
+  console.log("compost!", id, items.compost) 
   if (items.compost <= 0) return;
-  // consume compost
+  // 1) consume the resource
   setItems(it => ({ ...it, compost: it.compost - 1 }));
-  // advance plant stage like a perfect fertilize
+
+  // find old stage for this plant
+  const prevStage = plantedPlants.find(p => p.instanceId === id)?.stage ?? 0;
+  const nextStage = Math.min(3, prevStage + 1);
+
+  // 2) advance that plant’s stage
   setPlantedPlants(ps =>
     ps.map(p =>
       p.instanceId === id
         ? {
             ...p,
-            stage: Math.min(3, p.stage + 1),
+            stage: nextStage,
             mood: "radiant",
             lastCareTime: Date.now()
           }
         : p
     )
   );
-  // award harmony points
-  setHarmony(h => Math.min(100, h + 7));  // e.g. 7 pts for compost
+
+  // if just bloomed, bump counter
+  if (prevStage < 3 && nextStage === 3) {
+    setTotalBlooms(tb => tb + 1);
+  }
+
+  // 3) award harmony
+  setHarmony(h => Math.min(100, h + 7));
 }
+
 
   function handleCraft(instanceId) {
     // consume the wilted plant
@@ -313,6 +331,9 @@ export default function App() {
     // Instantly use premium fertilizer on the plant (skip mini-game, guaranteed boost)
     if (items.premiumFertilizer <= 0) return;
     setItems(prev => ({ ...prev, premiumFertilizer: prev.premiumFertilizer - 1 }));
+    const prevStage = plantedPlants.find(p => p.instanceId === id)?.stage ?? 0;
+    const nextStage = Math.min(3, prevStage + 1);
+
     setPlantedPlants(plants =>
       plants.map(p =>
         p.instanceId === id
@@ -325,6 +346,11 @@ export default function App() {
           : p
       )
     );
+
+    if (prevStage < 3 && nextStage === 3) {
+      setTotalBlooms(tb => tb + 1);
+    }
+
     // Count as a fertilize action
     setFertilizeCount(count => count + 1);
     // Add harmony points (treat as perfect fertilize)
@@ -355,6 +381,14 @@ export default function App() {
     // Save entry to Firestore journal field
     const ref = doc(db, "users", user.uid);
     updateDoc(ref, { [`journal.${todayKey}`]: journalEntry }).catch(console.error);
+    const statsSnapshot = {
+  blooms: totalBlooms,
+  harmony,
+  coins
+};
+
+setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
+
     // Update local journal entries and calendar
     setJournalEntries(prev => ({ ...prev, [todayKey]: journalEntry }));
     // Check for special keyword unlocks in the entry
@@ -409,20 +443,33 @@ export default function App() {
   }
 
   function tryWeatherAction(instanceId) {
-    const plant = plantedPlants.find(p => p.instanceId === instanceId);
-    const step  = getRecipeStep(plant);
-    if (!step || step.action !== "weather" || step.condition !== forecast[0].name) {
-      alert("The weather isn’t right for this stage!");
-      return;
-    }
-    setPlantedPlants(ps =>
-      ps.map(p =>
-        p.instanceId === instanceId
-          ? { ...p, stage: p.stage + 1, lastCareTime: Date.now() }
-          : p
-      )
-    );
+  const plant = plantedPlants.find(p => p.instanceId === instanceId);
+  const step  = getRecipeStep(plant);
+
+  if (!step || step.action !== "weather" || step.condition !== forecast[0].name) {
+    alert("The weather isn’t right for this stage!");
+    return;
   }
+
+  // capture old and compute new
+  const prevStage = plant.stage;
+  const newStage  = prevStage + 1;
+
+  // update that one plant
+  setPlantedPlants(ps =>
+    ps.map(p =>
+      p.instanceId === instanceId
+        ? { ...p, stage: newStage, lastCareTime: Date.now() }
+        : p
+    )
+  );
+
+  // if we just crossed into bloom, bump totalBlooms
+  if (prevStage < 3 && newStage === 3) {
+    setTotalBlooms(tb => tb + 1);
+  }
+}
+
 
   // --- Guard before render ---
   if (!authChecked) return null;
@@ -454,6 +501,15 @@ export default function App() {
 
       {view === "garden" && (
         <main className="dashboard">
+          <section className="card stats">
+  <h3>📊 Your Stats</h3>
+  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+    <li>💰 Coins: {coins}</li>
+    <li>🌸 Total Blooms: {totalBlooms}</li>
+    <li>✨ Harmony: {harmony}</li>
+  </ul>
+</section>
+
           <section className="card goals">
             <h3>🎯 Daily Goals</h3>
             <ul>
@@ -492,9 +548,10 @@ export default function App() {
                     weather={forecast[0].name}
                     onSell={handleSell}
                     onRevive={handleRevive}
-                    onCraft={handleCraft}
                     hasPremium={items.premiumFertilizer > 0}
-                    hasCompost={items.compost > 0}
+                    onCompost={handleCompost}
+                    hasCompost={items.compost}
+                    onCraft={handleCraft}
                   />
                 ))}
               </div>
@@ -531,7 +588,7 @@ export default function App() {
 
       {view === "calendar" && (
         <main className="single-pane">
-          <CalendarView sessionDates={Object.keys(journalEntries)} />
+          <CalendarView sessionStats={dailyStats} />
         </main>
       )}
 

@@ -13,6 +13,7 @@ export default function PlantCard({
   onWater,
   onFertilize,
   onPremiumFertilize,
+  onCompost,           // ← add this
   onSell,
   onRevive,
   onCraft,
@@ -70,15 +71,17 @@ export default function PlantCard({
         </button>
       )}
 
-      {/* Compost (only if they have one) */}
-      {hasCompost > 0 && (
-        <button
-          className="pill-button"
-          onClick={() => onCompost(instanceId)}
-        >
-          🍂 Compost
-        </button>
-      )}
+{/* compost-on-plant button */}
+{!isWilted && stage < 3 && hasCompost > 0 && (
+  <button
+    className="pill-button"
+    onClick={() => onCompost(instanceId)}
+  >
+    🍂 Compost
+  </button>
+)}
+
+
 
       {/* Weather‐trigger (always visible for growing plants) */}
       <button

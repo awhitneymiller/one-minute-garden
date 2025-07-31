@@ -349,11 +349,31 @@ body {
 }
 
 .plant-img {
-  width: 100%;
-  max-height: 100px;
-  object-fit: contain;
-  margin-bottom: 0.5rem;
+  /* nearest‐neighbor upscaling so 32×32 → 128×128 stays crisp */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  
+  /* make sure you’re scaling by an integer multiple of the source size */
+  width: 128px;    /* or whatever integer multiple you like */
+  height: 128px;   /* matching the original aspect ratio */
 }
+.plant-card-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* horizontal centering */
+  /* optional if you want everything stacked tightly: */
+  /* justify-content: start; vertical alignment */
+}
+
+.plant-card-container .plant-img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  width: 96px;
+  height: 96px;
+  /* images are block-level in a flex container by default */
+}
+
+
 
 .meter-label {
   font-size: 0.85rem;
@@ -647,10 +667,50 @@ body {
   transition: left 0.03s;
 }
 
+/* ==========================================================================
+  MapView Styles
+   ========================================================================== */
 .map-list { display: flex; gap: 1rem; margin-bottom: 2rem; }
 .map-list button.active { text-decoration: underline; }
 .map-display { text-align: center; font-size: 1.25rem; }
 
 
+/* ==========================================================================
+  Calendar View
+   ========================================================================== */
 
+.card.stats ul li {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+
+
+.calendar-cell {
+  position: relative;
+  padding: 0.5rem;
+  background: var(--panel);
+  border-radius: var(--card-radius);
+  text-align: center;
+}
+
+.calendar-cell.active {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.day-number {
+  font-weight: 600;
+}
+
+.day-stats {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--fg-muted);
+}
+
+.day-stats div + div {
+  margin-top: 0.1rem;
+}
 
