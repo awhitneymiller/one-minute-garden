@@ -173,17 +173,11 @@ body {
 .app-header h1 { font-size: 1.5rem; }
 
 /* --------------------------------------------------------------------------
-   Header Navigation Pills
+   Header Navigation Pills (buttons AND links)
    -------------------------------------------------------------------------- */
-.nav {
-  display: flex;
-  gap: 0.5rem;
-  /* center if you want:
-     justify-content: center;
-  */
-}
-
+.nav a,
 .nav button {
+  display: inline-block;
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 999px;
@@ -191,6 +185,7 @@ body {
   color: white;
   font-weight: 600;
   font-size: 0.95rem;
+  text-decoration: none;   /* for the <a> */
   cursor: pointer;
   box-shadow: var(--card-shadow);
   transition: 
@@ -199,15 +194,44 @@ body {
     transform 0.1s ease;
 }
 
+.nav a:hover,
 .nav button:hover {
   background: rgba(255,255,255,0.5);
   transform: translateY(-1px);
 }
 
+.nav a.active,
 .nav button.active {
   background: white;
   color: var(--accent);
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* index.css (somewhere near your “Header Navigation Pills” rules) */
+.pill-button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: 
+    background 0.2s ease,
+    transform 0.1s ease;
+}
+
+.pill-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.pill-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ==========================================================================

@@ -1,4 +1,5 @@
 // src/data/plants.js
+// Defines all plant types with their costs, rarities, and unique growth recipes.
 export const allPlants = [
   {
     id: "pink-flower",
@@ -7,6 +8,13 @@ export const allPlants = [
     cost: 5,
     sellValue: 10,
     rarity: "common",
+    // Recipe: seed→sprout→growing→bloom
+    growthRecipe: [
+      { action: "water", minAccuracy: "normal" },    // Seed → Sprout
+      { action: "fertilize", type: "standard" },    // Sprout → Growing
+      { action: "weather", condition: "Sunny" },    // Growing → Pre-Bloom
+      { action: "fertilize", type: "standard" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "blue-flower",
@@ -15,6 +23,12 @@ export const allPlants = [
     cost: 5,
     sellValue: 10,
     rarity: "common",
+    growthRecipe: [
+      { action: "water", minAccuracy: "perfect" },   // Seed → Sprout
+      { action: "fertilize", type: "standard" },    // Sprout → Growing
+      { action: "weather", condition: "Rainy" },    // Growing → Pre-Bloom
+      { action: "fertilize", type: "standard" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "red-bush",
@@ -23,6 +37,12 @@ export const allPlants = [
     cost: 12,
     sellValue: 15,
     rarity: "common",
+    growthRecipe: [
+      { action: "weather", condition: "Cloudy" },    // Seed → Sprout
+      { action: "water", minAccuracy: "normal" },    // Sprout → Growing
+      { action: "fertilize", type: "compost" },      // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "green-bush",
@@ -31,8 +51,13 @@ export const allPlants = [
     cost: 12,
     sellValue: 15,
     rarity: "common",
+    growthRecipe: [
+      { action: "water", minAccuracy: "normal" },    // Seed → Sprout
+      { action: "weather", condition: "Foggy" },     // Sprout → Growing
+      { action: "fertilize", type: "standard" },    // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
-
   {
     id: "yellow-daisy",
     name: "Yellow Daisy",
@@ -40,6 +65,12 @@ export const allPlants = [
     cost: 15,
     sellValue: 19,
     rarity: "uncommon",
+    growthRecipe: [
+      { action: "water", minAccuracy: "perfect" },   // Seed → Sprout
+      { action: "fertilize", type: "compost" },      // Sprout → Growing
+      { action: "weather", condition: "Cold Snap" }, // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "small-purple-flowers",
@@ -48,6 +79,12 @@ export const allPlants = [
     cost: 20,
     sellValue: 28,
     rarity: "uncommon",
+    growthRecipe: [
+      { action: "water", minAccuracy: "normal" },    // Seed → Sprout
+      { action: "fertilize", type: "standard" },    // Sprout → Growing
+      { action: "weather", condition: "Cloudy" },    // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "small-yellow-flowers",
@@ -56,6 +93,12 @@ export const allPlants = [
     cost: 25,
     sellValue: 37,
     rarity: "rare",
+    growthRecipe: [
+      { action: "weather", condition: "Sunny" },     // Seed → Sprout
+      { action: "water", minAccuracy: "perfect" },   // Sprout → Growing
+      { action: "fertilize", type: "compost" },      // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "moonflowers",
@@ -64,6 +107,12 @@ export const allPlants = [
     cost: 40,
     sellValue: 60,
     rarity: "rare",
+    growthRecipe: [
+      { action: "weather", condition: "Foggy" },     // Seed → Sprout (night/mist)
+      { action: "water", minAccuracy: "normal" },    // Sprout → Growing
+      { action: "fertilize", type: "standard" },    // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "starpetal",
@@ -72,6 +121,12 @@ export const allPlants = [
     cost: 60,
     sellValue: 78,
     rarity: "legendary",
+    growthRecipe: [
+      { action: "water", minAccuracy: "perfect" },   // Seed → Sprout
+      { action: "water", minAccuracy: "perfect" },   // Sprout → Growing
+      { action: "weather", condition: "Cloudy" },    // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
   },
   {
     id: "pink-spirit-flower",
@@ -80,5 +135,11 @@ export const allPlants = [
     cost: 65,
     sellValue: 85,
     rarity: "legendary",
-  },
+    growthRecipe: [
+      { action: "fertilize", type: "compost" },      // Seed → Sprout
+      { action: "water", minAccuracy: "normal" },    // Sprout → Growing
+      { action: "weather", condition: "Cold Snap" }, // Growing → Pre-Bloom
+      { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
+    ]
+  }
 ];

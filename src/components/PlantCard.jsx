@@ -1,6 +1,12 @@
 // src/components/PlantCard.jsx
 import React from "react";
 import "./PlantCard.css";
+import { allPlants } from "../data/plants";
+
+function getRecipeStep(plant) {
+  const def = allPlants.find(p => p.id === plant.id);
+  return def?.growthRecipe?.[plant.stage];
+}
 
 export default function PlantCard({
   plant,
@@ -11,6 +17,7 @@ export default function PlantCard({
   onSell,
   onRevive,
   onRemove,
+  onWeatherAction,     // ← add this
   hasPremium,
   hasCompost
 }) {
@@ -42,50 +49,47 @@ export default function PlantCard({
       <div className="action-buttons">
         {/* Standard Water */}
         {!isWilted && (
-          <button onClick={() => onWater(instanceId)}>
-            💧 Water
-          </button>
+          <button className="pill-button" onClick={() => onWater(plant.instanceId)}>Water</button>
         )}
 
         {/* Standard Fertilizer */}
         {!isWilted && stage < 3 && (
-          <button onClick={() => onFertilize(instanceId)}>
-            🌱 Fertilize
-          </button>
+          <button className="pill-button" onClick={() => onFertilize(plant.instanceId)}>Fertilize</button>
         )}
 
         {/* Premium Fertilizer */}
         {!isWilted && stage < 3 && hasPremium > 0 && (
-          <button onClick={() => onPremiumFertilize(instanceId)}>
-            🥇 Premium
-          </button>
+          <button className="pill-button" onClick={() => onPremiumFertilize(plant.instanceId)}>🥇 Premium Fertilizer</button>
         )}
 
         {/* Compost */}
         {!isWilted && stage < 3 && hasCompost > 0 && (
-          <button onClick={() => onCompost(instanceId)}>
-            🍂 Compost
-          </button>
+          <button className="pill-button" onClick={() => onCompost(plant.instanceId)}>🍂 Compost</button>
         )}
 
         {/* Revive Wilted */}
         {isWilted && (
-          <button onClick={() => onRevive(instanceId)}>
-            ✨ Revive
-          </button>
+          <button className="pill-button" onClick={() => onRevive(plant.instanceId)}>✨ Revive</button>
         )}
 
         {/* Sell or Remove */}
         {stage === 3 && !isWilted && (
-          <button onClick={() => onSell(instanceId)}>
-            💰 Sell
-          </button>
+          <button className="pill-button" onClick={() => onSell(plant.instanceId)}>💰 Sell</button>
         )}
         {isWilted && (
-          <button onClick={() => onRemove(instanceId)}>
-            🗑️ Remove
+          <button className="pill-button" onClick={() => onRevive(plant.instanceId)}>✨ Revive</button>
+        )}
+
+        {/* Weather‐trigger step */}
+        {!isWilted && getRecipeStep(plant)?.action === "weather" && (
+          <button
+            className="pill-button"
+            onClick={() => onWeatherAction(instanceId)}
+          >
+            Wait for {getRecipeStep(plant).condition}
           </button>
         )}
+
       </div>
     </div>
   );

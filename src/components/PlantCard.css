@@ -49,3 +49,16 @@
   background-color: #86efac;
   height: 100%;
 }
+
+/* Make buttons in PlantCard smaller and spaced out */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;          /* space between buttons */
+  margin-top: 0.5rem;
+}
+
+.action-buttons .pill-button {
+  padding: 0.3rem 0.6rem;   /* smaller pads */
+  font-size: 0.8rem;        /* smaller text */
+}

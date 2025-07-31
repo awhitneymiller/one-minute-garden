@@ -12,6 +12,11 @@ import {
   updateDoc
 } from "./firebase";
 import { allPlants } from "./data/plants";
+// Helper to fetch the next recipe step for a planted instance
+function getRecipeStep(plant) {
+  const def = allPlants.find(p => p.id === plant.id);
+  return def?.growthRecipe?.[plant.stage];
+}
 import { weatherEvents } from "./data/weather";
 import { storyBeats } from "./data/story";
 import { journalUnlockables } from "./data/journalUnlockables";
@@ -395,6 +400,22 @@ export default function App() {
     alert("Journal entry saved! 🌱");
   }
 
+  function tryWeatherAction(instanceId) {
+    const plant = plantedPlants.find(p => p.instanceId === instanceId);
+    const step  = getRecipeStep(plant);
+    if (!step || step.action !== "weather" || step.condition !== forecast[0].name) {
+      alert("The weather isn’t right for this stage!");
+      return;
+    }
+    setPlantedPlants(ps =>
+      ps.map(p =>
+        p.instanceId === instanceId
+          ? { ...p, stage: p.stage + 1, lastCareTime: Date.now() }
+          : p
+      )
+    );
+  }
+
   // --- Guard before render ---
   if (!authChecked) return null;
   if (!user) return <Auth />;
@@ -406,7 +427,7 @@ export default function App() {
     >
       <header className="app-header">
         <h1>🌿 One Minute Garden</h1>
-        <nav>
+        <nav className="nav">
           {["garden","map","recipes","calendar","journal","shop","crafting"].map(v => (
             <button
               key={v}
@@ -417,8 +438,8 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <ThemeToggle theme={theme} setTheme={setTheme} />
-        <button className="logout-btn" onClick={() => signOut(auth)}>
+        <button className="pill-button" onClick={() => setTheme(theme === "light" ? "dark" : "light")}> Dark Mode </button>
+        <button className="logout-btn pill-button" onClick={() => signOut(auth)}>
           Log Out
         </button>
       </header>
@@ -460,6 +481,7 @@ export default function App() {
                     onFertilize={handleFertilize}
                     onPremiumFertilize={handlePremiumFertilize}
                     onCompost={handleCompost}
+                    onWeatherAction={tryWeatherAction}
                     onSell={handleSell}
                     onRevive={handleRevive}
                     onRemove={handleRemove}
@@ -533,8 +555,16 @@ export default function App() {
 {activeMiniGame === "water" && (
   <WaterMiniGame
     onResult={result => {
-      console.log("Water result:", result);
       setActiveMiniGame(null);
+      // 0) fetch the plant & its next recipe step
+      const plant = plantedPlants.find(p => p.instanceId === activePlantId);
+      const step  = getRecipeStep(plant);
+      // 1) must be a water step, and if minAccuracy is "perfect", require that
+      if (!step || step.action !== "water"
+          || (step.minAccuracy === "perfect" && result !== "perfect")) {
+        alert("That action isn’t the right next step for this plant!");
+        return;
+      }
 
       // 1) grab previous stage
       const prevStage =
@@ -599,8 +629,15 @@ export default function App() {
 {activeMiniGame === "fertilize" && (
   <FertilizeMiniGame
     onResult={result => {
-      console.log("Fertilize result:", result);
       setActiveMiniGame(null);
+      // 0) fetch the plant & its next recipe step
+      const plant = plantedPlants.find(p => p.instanceId === activePlantId);
+      const step  = getRecipeStep(plant);
+      // 1) must be a standard‐fertilize step
+      if (!step || step.action !== "fertilize" || step.type !== "standard") {
+        alert("Standard fertilizer isn’t the right next step for this plant!");
+        return;
+    }
 
       // 1) grab previous stage
       const prevStage =
