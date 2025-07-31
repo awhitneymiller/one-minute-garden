@@ -9,11 +9,6 @@ export default function ShopView({ coins, setCoins, inventory, setInventory, ite
   // Filter out special seeds (cost 0) from shop list
   const seedsForSale = allPlants.filter(p => p.cost && p.cost > 0);
 
-  const upgrades = [
-    { id: "decor1", name: "Garden Gnome", cost: 20 },
-    { id: "buff1", name: "Fertilizer Pack (x5)", cost: 30 },
-    { id: "buff2", name: "Sun Crystal", cost: 25 }
-  ];
 
   const buySeed = plant => {
     if (coins < plant.cost) {

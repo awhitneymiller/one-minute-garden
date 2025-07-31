@@ -39,6 +39,7 @@ import WaterMiniGame from "./components/MiniGames/WaterMiniGame";
 import FertilizeMiniGame from "./components/MiniGames/FertilizeMiniGame";
 import CraftingView from "./components/CraftingView";
 
+
 export default function App() {
   // --- Starter seeds (first 3 defined in allPlants) ---
   const starterSeeds = allPlants.slice(0, 3).map(({ id, name, image }) => ({
@@ -137,7 +138,13 @@ export default function App() {
             newPlant.mood = "wilted";
             newPlant.waterLevel = 0;
           }
-          return newPlant;
+          return {
+            ...newPlant,
+            wrongAttempts: p.wrongAttempts || 0,   // ← bring in (or init) the counter
+            waterLevel: newPlant.waterLevel,
+            stage:     newPlant.stage,
+            mood:      newPlant.mood
+          };
         });
         setPlantedPlants(plants);
         setCoins(d.coins || 0);
@@ -206,6 +213,7 @@ export default function App() {
         waterLevel: 100,
         mood: "happy",
         lastCareTime: Date.now(),
+        wrongAttempts: 0,
         instanceId: `${seed.id}-${Date.now()}`
       }
     ]);
@@ -480,11 +488,11 @@ export default function App() {
                     onWater={handleWater}
                     onFertilize={handleFertilize}
                     onPremiumFertilize={handlePremiumFertilize}
-                    onCompost={handleCompost}
                     onWeatherAction={tryWeatherAction}
+                    weather={forecast[0].name}
                     onSell={handleSell}
                     onRevive={handleRevive}
-                    onRemove={handleRemove}
+                    onCraft={handleCraft}
                     hasPremium={items.premiumFertilizer > 0}
                     hasCompost={items.compost > 0}
                   />
@@ -492,18 +500,28 @@ export default function App() {
               </div>
             )}
           </section>
+          <section className="card inventory">
+            <h3>🧰 Your Supplies</h3>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              <li>🥇 Premium Fertilizer: {items.premiumFertilizer}</li>
+              <li>🍂 Compost: {items.compost}</li>
+            </ul>
+          </section>
         </main>
       )}
 
       {view === "map" && (
-        <main className="single-pane">
-          <MapView
-            bloomCount={totalBlooms}
-            currentMap={currentMap}
-            onSelectMap={setCurrentMap}
-          />
-        </main>
-      )}
+  <main className="single-pane">
+    <MapView
+      bloomCount={totalBlooms}
+      coins={coins}
+      setCoins={setCoins}
+      currentMap={currentMap}
+      onSelectMap={setCurrentMap}
+    />
+  </main>
+)}
+
 
       {view === "recipes" && (
         <main className="single-pane">
@@ -523,6 +541,7 @@ export default function App() {
             journal={journalEntry}
             setJournal={setJournalEntry}
             onSave={handleSaveJournal}
+            entries={journalEntries}            // ← pass the full history
           />
         </main>
       )}
@@ -536,6 +555,7 @@ export default function App() {
             setInventory={setInventory}
             items={items}
             setItems={setItems}
+            currentBiome={currentMap}
           />
         </main>
       )}
@@ -561,10 +581,24 @@ export default function App() {
       const step  = getRecipeStep(plant);
       // 1) must be a water step, and if minAccuracy is "perfect", require that
       if (!step || step.action !== "water"
-          || (step.minAccuracy === "perfect" && result !== "perfect")) {
-        alert("That action isn’t the right next step for this plant!");
-        return;
-      }
+    || (step.minAccuracy === "perfect" && result !== "perfect")) {
+  // ← NEW: bump wrongAttempts and wilt on 3
+  setPlantedPlants(ps =>
+    ps.map(p =>
+      p.instanceId === activePlantId
+        ? {
+            ...p,
+            wrongAttempts: (p.wrongAttempts || 0) + 1,
+            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
+          }
+        : p
+    )
+  );
+  alert("That action isn’t the right next step for this plant!");
+  return;
+}
+
 
       // 1) grab previous stage
       const prevStage =
@@ -635,9 +669,22 @@ export default function App() {
       const step  = getRecipeStep(plant);
       // 1) must be a standard‐fertilize step
       if (!step || step.action !== "fertilize" || step.type !== "standard") {
-        alert("Standard fertilizer isn’t the right next step for this plant!");
-        return;
-    }
+  // ← NEW: bump wrongAttempts and wilt on 3
+  setPlantedPlants(ps =>
+    ps.map(p =>
+      p.instanceId === activePlantId
+        ? {
+            ...p,
+            wrongAttempts: (p.wrongAttempts || 0) + 1,
+            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
+          }
+        : p
+    )
+  );
+  alert("Standard fertilizer isn’t the right next step for this plant!");
+  return;
+}
 
       // 1) grab previous stage
       const prevStage =

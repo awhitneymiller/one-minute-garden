@@ -234,6 +234,29 @@ body {
   cursor: not-allowed;
 }
 
+/* --------------------------------------------------------------------------
+   Give the nav some breathing room from the title and the right-side pills
+   -------------------------------------------------------------------------- */
+.app-header > nav {
+  margin: 0 1.5rem;    /* push nav in from the logo and Dark/Log-out buttons */
+}
+
+/* --------------------------------------------------------------------------
+   Increase space between each header pill
+   -------------------------------------------------------------------------- */
+.nav {
+  display: flex;
+  gap: 1rem;           /* larger gap between each link/button */
+}
+
+/* --------------------------------------------------------------------------
+   Space out the right-side pills (Dark Mode / Log Out)
+   -------------------------------------------------------------------------- */
+.app-header .pill-button {
+  margin-left: 1rem;   /* separate them from the nav and each other */
+}
+
+
 /* ==========================================================================
    Big Cards & Dashboard Layout
    ========================================================================== */

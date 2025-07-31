@@ -1,4 +1,7 @@
 // src/data/plants.js
+
+import { ca } from "date-fns/locale";
+
 // Defines all plant types with their costs, rarities, and unique growth recipes.
 export const allPlants = [
   {
@@ -8,6 +11,7 @@ export const allPlants = [
     cost: 5,
     sellValue: 10,
     rarity: "common",
+    availableBiomes: ["meadow"],
     // Recipe: seed→sprout→growing→bloom
     growthRecipe: [
       { action: "water", minAccuracy: "normal" },    // Seed → Sprout
@@ -23,8 +27,9 @@ export const allPlants = [
     cost: 5,
     sellValue: 10,
     rarity: "common",
+    availableBiomes: ["meadow"],
     growthRecipe: [
-      { action: "water", minAccuracy: "perfect" },   // Seed → Sprout
+      { action: "water", minAccuracy: "normal" },   // Seed → Sprout
       { action: "fertilize", type: "standard" },    // Sprout → Growing
       { action: "weather", condition: "Rainy" },    // Growing → Pre-Bloom
       { action: "fertilize", type: "standard" }      // Pre-Bloom → Bloom
@@ -37,6 +42,7 @@ export const allPlants = [
     cost: 12,
     sellValue: 15,
     rarity: "common",
+    availableBiomes: ["meadow"],
     growthRecipe: [
       { action: "weather", condition: "Cloudy" },    // Seed → Sprout
       { action: "water", minAccuracy: "normal" },    // Sprout → Growing
@@ -51,6 +57,7 @@ export const allPlants = [
     cost: 12,
     sellValue: 15,
     rarity: "common",
+    availableBiomes: ["meadow", "grove"],
     growthRecipe: [
       { action: "water", minAccuracy: "normal" },    // Seed → Sprout
       { action: "weather", condition: "Foggy" },     // Sprout → Growing
@@ -65,8 +72,9 @@ export const allPlants = [
     cost: 15,
     sellValue: 19,
     rarity: "uncommon",
+    availableBiomes: ["meadow", "grove"],
     growthRecipe: [
-      { action: "water", minAccuracy: "perfect" },   // Seed → Sprout
+      { action: "water", minAccuracy: "normal" },   // Seed → Sprout
       { action: "fertilize", type: "compost" },      // Sprout → Growing
       { action: "weather", condition: "Cold Snap" }, // Growing → Pre-Bloom
       { action: "fertilize", type: "premium" }      // Pre-Bloom → Bloom
@@ -79,6 +87,7 @@ export const allPlants = [
     cost: 20,
     sellValue: 28,
     rarity: "uncommon",
+    availableBiomes: ["meadow", "grove"],
     growthRecipe: [
       { action: "water", minAccuracy: "normal" },    // Seed → Sprout
       { action: "fertilize", type: "standard" },    // Sprout → Growing
@@ -93,6 +102,7 @@ export const allPlants = [
     cost: 25,
     sellValue: 37,
     rarity: "rare",
+    availableBiomes: ["meadow", "grove"],
     growthRecipe: [
       { action: "weather", condition: "Sunny" },     // Seed → Sprout
       { action: "water", minAccuracy: "perfect" },   // Sprout → Growing
@@ -107,6 +117,7 @@ export const allPlants = [
     cost: 40,
     sellValue: 60,
     rarity: "rare",
+    availableBiomes: ["cliffside", "grove", "lunar"],
     growthRecipe: [
       { action: "weather", condition: "Foggy" },     // Seed → Sprout (night/mist)
       { action: "water", minAccuracy: "normal" },    // Sprout → Growing
@@ -121,6 +132,7 @@ export const allPlants = [
     cost: 60,
     sellValue: 78,
     rarity: "legendary",
+    availableBiomes: ["grove", "greenhouse", "cliffside", "cavern", "lunar"],
     growthRecipe: [
       { action: "water", minAccuracy: "perfect" },   // Seed → Sprout
       { action: "water", minAccuracy: "perfect" },   // Sprout → Growing
@@ -135,6 +147,7 @@ export const allPlants = [
     cost: 65,
     sellValue: 85,
     rarity: "legendary",
+    availableBiomes: ["grove", "cliffside", "greenhouse"],
     growthRecipe: [
       { action: "fertilize", type: "compost" },      // Seed → Sprout
       { action: "water", minAccuracy: "normal" },    // Sprout → Growing

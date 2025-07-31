@@ -9,12 +9,15 @@ export default function ShopView({
   coins,
   setCoins,
   items,
-  setItems
+  setItems,
+  currentBiome
 }) {
   const [tab, setTab] = useState("seeds");
 
-  // Seeds for sale: any plant with a cost
-  const seedsForSale = allPlants.filter((p) => p.cost > 0);
+  // Seeds for sale: cost >0 AND available in this biome
+  const seedsForSale = allPlants.filter(
+    (p) => p.cost > 0 && p.availableBiomes?.includes(currentBiome)
+  );
 
   // Upgrades for sale
   const upgradesForSale = [
@@ -22,7 +25,7 @@ export default function ShopView({
       id: "premiumFertilizer",
       name: "Premium Fertilizer",
       image: "/images/premium-fertilizer.png",
-      cost: 50,
+      cost: 25,
       label: `You own ${items.premiumFertilizer}`
     },
     {

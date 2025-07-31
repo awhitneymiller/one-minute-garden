@@ -1,0 +1,69 @@
+/* src/components/Journal.css */
+
+.journal {
+  max-width: 700px;
+  margin: 2rem auto;
+}
+
+.journal .panel {
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  padding: 1rem;
+  box-shadow: var(--card-shadow);
+}
+
+.journal-prompt {
+  color: var(--fg);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.journal-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  margin-bottom: 0.5rem;
+  resize: vertical;
+  font-family: var(--font-family);
+}
+
+.journal-save {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--card-radius);
+  cursor: pointer;
+}
+
+.journal-save:hover {
+  background: var(--primary-dark);
+}
+
+.entries-list {
+  margin-top: 1.5rem;
+  list-style: none;
+}
+
+.entries-list li {
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.entry-date {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 0.5rem;
+}
+
+.entry-text {
+  color: var(--fg);
+  white-space: pre-wrap;
+}

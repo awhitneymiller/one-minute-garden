@@ -22,8 +22,8 @@ export default function WaterMiniGame({ onResult }) {
   function stop() {
     setRunning(false);
     let result = "fail";
-    if (position >= 40 && position <= 60) result = "perfect";
-    else if (position >= 30 && position <= 70) result = "okay";
+    if (position >= 30 && position <= 60) result = "perfect";
+    else if (position >= 20 && position <= 70) result = "okay";
     onResult(result);
   }
 
