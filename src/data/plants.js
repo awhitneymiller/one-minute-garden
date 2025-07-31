@@ -41,7 +41,7 @@ export const allPlants = [
   {
     id: "blue-flower",
     name: "Blue Flower",
-    image: new URL("../assets/plants/flower3_blue.png", import.meta.url).href,
+    image: new URL("../assets/plants/flower7_blue.png", import.meta.url).href,
     cost: 5,
     sellValue: 10,
     rarity: "common",

@@ -3,7 +3,12 @@ import React from "react";
 import "./PlantCard.css";
 import { allPlants } from "../data/plants";
 
-// Find the next recipe step (used for validation elsewhere)
+// 🌱 Glob all the plant images
+const plantImages = import.meta.glob("../assets/plants/*.png", {
+  eager: true,
+  import: "default"
+});
+
 function getRecipeStep(plant) {
   const def = allPlants.find(p => p.id === plant.id);
   return def?.growthRecipe?.[plant.stage];
@@ -24,7 +29,10 @@ export default function PlantCard({
 }) {
   const { instanceId, name, image, stage, waterLevel, mood } = plant;
   const isWilted = mood === "wilted";
-  const step     = getRecipeStep(plant);
+  // Pull just the filename, e.g. "flower4_pink.png"
+  const filename = image.split("/").pop();
+  // Look up the actual imported URL
+  const imgSrc = plantImages[`../assets/plants/${filename}`];
 
   const stageNames = ["Seed", "Sprout", "Growing", "Bloom"];
   const stageLabel = isWilted ? "Wilted" : stageNames[stage];
@@ -32,9 +40,11 @@ export default function PlantCard({
   return (
     <div className="plant-card-container">
       <h4>{name}</h4>
-
-      {/* now image is a full URL from data/plants.js */}
-      <img src={image} alt={name} className="plant-img" />
+      {imgSrc ? (
+        <img src={imgSrc} alt={name} className="plant-img" />
+      ) : (
+        <div className="plant-img placeholder">No image</div>
+      )}
 
       <p><strong>Stage:</strong> {stageLabel}</p>
       <p><strong>Mood:</strong> {isWilted ? "😢" : "😊"}</p>
@@ -48,7 +58,6 @@ export default function PlantCard({
       </div>
 
       <div className="action-buttons">
-        {/* growing stages */}
         {!isWilted && stage < 3 && (
           <>
             <button className="pill-button" onClick={() => onWater(instanceId)}>
@@ -73,7 +82,6 @@ export default function PlantCard({
           </>
         )}
 
-        {/* wilted */}
         {isWilted && (
           <>
             <button className="pill-button" onClick={() => onRevive(instanceId)}>
@@ -85,7 +93,6 @@ export default function PlantCard({
           </>
         )}
 
-        {/* fully bloomed */}
         {stage === 3 && !isWilted && (
           <button className="pill-button" onClick={() => onSell(instanceId)}>
             💰 Sell
