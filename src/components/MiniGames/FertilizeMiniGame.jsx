@@ -1,5 +1,5 @@
-// src/components/MiniGames/FertilizeMiniGame.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 export default function FertilizeMiniGame({ onResult }) {
   const [position, setPosition] = useState(0);
@@ -7,35 +7,36 @@ export default function FertilizeMiniGame({ onResult }) {
   const direction = useRef(1);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const iv = setInterval(() => {
       if (!running) return;
-      setPosition(prev => {
-        let next = prev + direction.current * 4;
+      setPosition(p => {
+        let next = p + direction.current * 3;
         if (next >= 100 || next <= 0) direction.current *= -1;
         return Math.max(0, Math.min(100, next));
       });
     }, 30);
-    return () => clearInterval(interval);
+    return () => clearInterval(iv);
   }, [running]);
 
   function stop() {
     setRunning(false);
     let result = "fail";
-    if (position >= 45 && position <= 55) result = "perfect";
-    else if (position >= 35 && position <= 65) result = "okay";
+    if (position >= 40 && position <= 60) result = "perfect";
+    else if (position >= 30 && position <= 70) result = "okay";
     onResult(result);
   }
 
-  return (
+  return createPortal(
     <div className="minigame-overlay">
       <div className="minigame">
-        <h3>🌿 Fertilizing Mini-Game</h3>
+        <h3>🌱 Fertilizing Mini-Game</h3>
         <div className="bar-container" onClick={stop}>
           <div className="target" />
           <div className="bar-fill" style={{ left: `${position}%` }} />
         </div>
         <p>Click when the blue bar is inside the green zone!</p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

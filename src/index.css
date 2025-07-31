@@ -1,15 +1,17 @@
+@import './index.css';
+
 /* ==========================================================================
    Variables & Themes
    ========================================================================== */
 :root {
-  --bg: #eefcf4;
+  --bg: #b9cfc3;
   --fg: #374151;
   --panel: #ffffff;
-  --accent: #22c55e;
-  --accent-hover: #16a34a;
-  --primary-light: #d1fae5;
+  --accent: #5a8028;
+  --accent-hover: #36700f;
+  --primary-light: #8eaa92;
   --primary: #10b981;
-  --primary-dark: #065f46;
+  --primary-dark: #26492b;
 
   --card-radius: 1rem;
   --card-shadow: 0 4px 16px rgba(0,0,0,0.08);
@@ -17,11 +19,11 @@
 }
 
 [data-theme="dark"] {
-  --bg: #1f2937;
-  --fg: #e5e7eb;
-  --panel: #334155;
-  --accent: #10b981;
-  --accent-hover: #0d9488;
+  --bg: #516e5c;
+  --fg: #2c5231;
+  --panel: #18301a;
+  --accent: #0d3a1a;
+  --accent-hover: #023a10;
 }
 
 /* Biome Themes */
@@ -31,6 +33,99 @@
 .map-greenhouse{ --bg:#f7fee7; --panel:#fbfefc; --primary:#84cc16; --primary-light:#f0fdf4; }
 .map-cavern    { --bg:#eff8ff; --panel:#f3fafe; --primary:#0ea5e9; --primary-light:#f0f9ff; }
 .map-lunar     { --bg:#f5f3ff; --panel:#faf5ff; --primary:#c084fc; --primary-light:#faf5ff; }
+
+/* ==========================================================================
+   Weather Edge-Tint Overlays
+   ========================================================================== */
+.app-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sunny → warm gold edges */
+.weather-sunny::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* transparent center → color at edges */
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    rgba(255, 223, 107, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Rainy → cool blue edges */
+.weather-rainy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    rgba(93, 173, 226, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Foggy → soft grey edges */
+.weather-foggy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    rgba(200, 200, 200, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Snowy → pale white edges */
+.weather-snowy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    rgba(245, 245, 250, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cold Snap → icy teal edges */
+.weather-cold-snap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    rgba(180, 210, 255, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cloudy → muted slate edges */
+.weather-cloudy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    rgba(180, 180, 200, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* ==========================================================================
    Reset & Global
@@ -58,45 +153,42 @@ body {
 
 .app-header h1 { font-size: 1.5rem; }
 
+/* --------------------------------------------------------------------------
+   Header Navigation Pills
+   -------------------------------------------------------------------------- */
 .nav {
   display: flex;
   gap: 0.5rem;
+  /* center if you want:
+     justify-content: center;
+  */
 }
 
 .nav button {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 9999px;
+  border-radius: 999px;
   background: rgba(255,255,255,0.3);
   color: white;
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: var(--card-shadow);
+  transition: 
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 
-.nav button.active,
 .nav button:hover {
-  background: white;
-  color: var(--accent);
+  background: rgba(255,255,255,0.5);
+  transform: translateY(-1px);
 }
 
-.logout-btn,
-.theme-toggle {
-  padding: 0.5rem 1rem;
-  margin-left: 1rem;
-  border: none;
-  border-radius: var(--card-radius);
-  background: rgba(255,255,255,0.3);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.logout-btn:hover,
-.theme-toggle:hover {
+.nav button.active {
   background: white;
   color: var(--accent);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 /* ==========================================================================
@@ -417,23 +509,8 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* ==========================================================================
-   Mini-Game Overlay
-   ========================================================================== */
-.minigame-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 999;
-}
 
-.minigame {
-  background: var(--panel);
-  padding: 1rem;
-  border-radius: var(--card-radius);
-  text-align: center;
-  box-shadow: var(--card-shadow);
-}
+
 /* ==========================================================================
    Utility Classes
    ========================================================================== */
@@ -450,3 +527,53 @@ body {
   .nav { flex-wrap: wrap; }
   .dashboard { grid-template-columns: 1fr; }
 }
+
+
+/* ==========================================================================
+  Mini-Game Styles
+   ========================================================================== */
+.minigame-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
+.minigame {
+  background: var(--panel);
+  padding: 1rem;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+.bar-container {
+  position: relative;
+  width: 80%;
+  height: 20px;
+  background: #ddd;
+  margin: 1rem auto;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.target {
+  position: absolute;
+  top: 0;
+  left: 40%;
+  width: 20%;
+  height: 100%;
+  background: rgba(76,175,80,0.4);
+}
+.bar-fill {
+  position: absolute;
+  top: 0;
+  width: 10%;
+  height: 100%;
+  background: #00bcd4;
+  transition: left 0.03s;
+}
+
+
+
+
+

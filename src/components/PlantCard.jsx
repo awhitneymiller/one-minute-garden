@@ -1,81 +1,90 @@
 // src/components/PlantCard.jsx
 import React from "react";
-
-const moodEmoji = {
-  happy: "😊",
-  thirsty: "💧",
-  sleepy: "😴",
-  lonely: "🥺",
-  radiant: "🌟",
-  wilted: "🥀",
-  default: "🙂"
-};
+import "./PlantCard.css";
 
 export default function PlantCard({
   plant,
   onWater,
-  onFertilize,
-  onPremiumFertilize,
+  onFertilize,         // standard fertilizer (mini-game)
+  onPremiumFertilize,  // instant premium fertilizer
+  onCompost,           // instant compost
   onSell,
   onRevive,
   onRemove,
-  hasPremium
+  hasPremium,
+  hasCompost
 }) {
-  const stageNames = ["Seed", "Sprout", "Bud", "Bloom", "Wilted"];
-  const water = plant.waterLevel ?? 100;
-  const mood = plant.mood || "happy";
+  const { instanceId, id, name, image, stage, waterLevel, mood } = plant;
+  const isWilted = mood === "wilted";
 
-  // Use image if available, else fallback
-  const baseImage = plant.image || `/assets/plants/${plant.type}-${plant.variant}.png`;
+  // Display-friendly stage name
+  const stageNames = ["Seed", "Sprout", "Growing", "Bloom"];
+  const stageLabel = isWilted ? "Wilted" : stageNames[stage];
 
   return (
     <div className="plant-card-container">
-      <div className="plant-card">
-        <h4 style={{ marginBottom: "0.25rem" }}>{plant.name}</h4>
-        <img src={baseImage} alt={plant.name} className="plant-img" />
-        <p>Stage: {stageNames[plant.stage]}</p>
-        <p>Mood: {moodEmoji[mood] || moodEmoji.default}</p>
+      <h4>{name}</h4>
+      <img src={image} alt={name} className="plant-img" />
 
-        <div className="meter-label">💧 Water</div>
-        <div className="meter-bar">
-          <div
-            className="meter-fill water"
-            style={{ width: `${Math.max(0, Math.min(100, water))}%` }}
-          />
-        </div>
+      <p><strong>Stage:</strong> {stageLabel}</p>
+      <p><strong>Mood:</strong> {isWilted ? "😢" : "😊"}</p>
 
-        <div className="meter-label">🌱 Growth</div>
-        <div className="meter-bar">
-          <div
-            className="meter-fill growth"
-            style={{ width: `${(plant.stage / 3) * 100}%` }}
-          />
-        </div>
+      {/* Hydration Meter */}
+      <div className="meter-label">💧 Water</div>
+      <div className="meter-bar">
+        <div
+          className="meter-fill water"
+          style={{ width: `${waterLevel}%` }}
+        />
+      </div>
 
-        {/* Action Buttons */}
-        {plant.stage !== 4 ? (
-          <>
-            <button onClick={() => onWater(plant.instanceId)}>💦 Water</button>
-            {plant.stage < 3 && (
-              <>
-                <button onClick={() => onFertilize(plant.instanceId)}>🌿 Fertilize</button>
-                {hasPremium && (
-                  <button onClick={() => onPremiumFertilize(plant.instanceId)}>✨ Premium</button>
-                )}
-              </>
-            )}
-            {plant.stage === 3 && (
-              <button onClick={() => onSell(plant.instanceId)}>💰 Sell</button>
-            )}
-          </>
-        ) : (
-          <>
-            <p style={{ color: "#6b7280", fontStyle: "italic", margin: "0.5rem 0" }}>
-              This plant has wilted.
-            </p>
-            <button onClick={() => onRevive(plant.instanceId)}>✨ Revive</button>
-            <button onClick={() => onRemove(plant.instanceId)}>🗑️ Remove</button>
-          </>
+      {/* Action Buttons */}
+      <div className="action-buttons">
+        {/* Standard Water */}
+        {!isWilted && (
+          <button onClick={() => onWater(instanceId)}>
+            💧 Water
+          </button>
+        )}
+
+        {/* Standard Fertilizer */}
+        {!isWilted && stage < 3 && (
+          <button onClick={() => onFertilize(instanceId)}>
+            🌱 Fertilize
+          </button>
+        )}
+
+        {/* Premium Fertilizer */}
+        {!isWilted && stage < 3 && hasPremium > 0 && (
+          <button onClick={() => onPremiumFertilize(instanceId)}>
+            🥇 Premium
+          </button>
+        )}
+
+        {/* Compost */}
+        {!isWilted && stage < 3 && hasCompost > 0 && (
+          <button onClick={() => onCompost(instanceId)}>
+            🍂 Compost
+          </button>
+        )}
+
+        {/* Revive Wilted */}
+        {isWilted && (
+          <button onClick={() => onRevive(instanceId)}>
+            ✨ Revive
+          </button>
+        )}
+
+        {/* Sell or Remove */}
+        {stage === 3 && !isWilted && (
+          <button onClick={() => onSell(instanceId)}>
+            💰 Sell
+          </button>
+        )}
+        {isWilted && (
+          <button onClick={() => onRemove(instanceId)}>
+            🗑️ Remove
+          </button>
         )}
       </div>
     </div>

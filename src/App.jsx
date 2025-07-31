@@ -32,6 +32,7 @@ import MusicPlayer from "./components/MusicPlayer";
 import ShopView from "./components/ShopView";
 import WaterMiniGame from "./components/MiniGames/WaterMiniGame";
 import FertilizeMiniGame from "./components/MiniGames/FertilizeMiniGame";
+import CraftingView from "./components/CraftingView";
 
 export default function App() {
   // --- Starter seeds (first 3 defined in allPlants) ---
@@ -166,7 +167,7 @@ export default function App() {
     }).catch(console.error);
   }, [user, inventory, plantedPlants, coins, streak, items]);
 
-  // --- Handlers ---
+  // --- Handlers --- !!!!!!!!!!!!!
   function plantSeed(seed) {
     // Only allow up to 3 plants in garden at once
     if (plantedPlants.length >= 3) {
@@ -189,13 +190,44 @@ export default function App() {
   }
 
   function handleWater(id) {
+    console.log("handleWater called", id);
     setActivePlantId(id);
     setActiveMiniGame("water");
   }
 
+  function handleCompost(id) {
+  if (items.compost <= 0) return;
+  // consume compost
+  setItems(it => ({ ...it, compost: it.compost - 1 }));
+  // advance plant stage like a perfect fertilize
+  setPlantedPlants(ps =>
+    ps.map(p =>
+      p.instanceId === id
+        ? {
+            ...p,
+            stage: Math.min(3, p.stage + 1),
+            mood: "radiant",
+            lastCareTime: Date.now()
+          }
+        : p
+    )
+  );
+  // award harmony points
+  setHarmony(h => Math.min(100, h + 7));  // e.g. 7 pts for compost
+}
+
+  function handleCraft(instanceId) {
+    // consume the wilted plant
+    setPlantedPlants(plants =>
+      plants.filter(p => p.instanceId !== instanceId)
+    );
+    // add 1 compost
+    setItems(it => ({ ...it, compost: it.compost + 1 }));
+    alert("Crafted 1 Compost 🌱");
+    }
+
   function handleFertilize(id) {
-    // If user has premium fertilizer, they may choose to use it instead
-    // (Premium option is provided as a separate button in UI)
+    console.log("handleFertilize called", id);
     setActivePlantId(id);
     setActiveMiniGame("fertilize");
   }
@@ -342,11 +374,15 @@ export default function App() {
   if (!user) return <Auth />;
 
   return (
-    <div className={`app-container map-${currentMap}`}>
+    <div
+      className={`app-container map-${currentMap} weather-${forecast[0].name
+        .toLowerCase()
+        .replace(/\s+/g, "-")}`}
+    >
       <header className="app-header">
         <h1>🌿 One Minute Garden</h1>
-        <nav className="nav">
-          {["garden", "map", "recipes", "calendar", "journal", "shop"].map(v => (
+        <nav>
+          {["garden","map","recipes","calendar","journal","shop","crafting"].map(v => (
             <button
               key={v}
               className={view === v ? "active" : ""}
@@ -398,10 +434,12 @@ export default function App() {
                     onWater={handleWater}
                     onFertilize={handleFertilize}
                     onPremiumFertilize={handlePremiumFertilize}
+                    onCompost={handleCompost}
                     onSell={handleSell}
                     onRevive={handleRevive}
                     onRemove={handleRemove}
                     hasPremium={items.premiumFertilizer > 0}
+                    hasCompost={items.compost > 0}
                   />
                 ))}
               </div>
@@ -455,113 +493,122 @@ export default function App() {
         </main>
       )}
 
+      {view === "crafting" && (
+        <main className="single-pane">
+          <CraftingView
+            plantedPlants={plantedPlants}
+            onCraft={handleCraft}
+          />
+        </main>
+      )}
+
       <MusicPlayer />
 
       {/* Mini-game overlays */}
       {activeMiniGame === "water" && (
-        <div className="minigame-overlay">
-          <WaterMiniGame
-            onResult={result => {
-              setActiveMiniGame(null);
-              setPlantedPlants(plants =>
-                plants.map(p =>
-                  p.instanceId === activePlantId
-                    ? {
-                        ...p,
-                        waterLevel: result === "fail" ? p.waterLevel : 100,
-                        mood: result === "perfect" ? "radiant" : "happy",
-                        stage:
-                          result === "perfect" && p.stage < 3
-                            ? // Prevent bloom during Cold Snap
-                              forecast[0].name === "Cold Snap" && p.stage === 2
+        <WaterMiniGame
+          onResult={result => {
+            console.log("Water result:", result);
+            setActiveMiniGame(null);
+
+            setPlantedPlants(plants =>
+              plants.map(p =>
+                p.instanceId === activePlantId
+                  ? {
+                      ...p,
+                      waterLevel: result === "fail" ? p.waterLevel : 100,
+                      mood: result === "perfect" ? "radiant" : "happy",
+                      stage:
+                        result === "perfect" && p.stage < 3
+                          ? (forecast[0].name === "Cold Snap" && p.stage === 2
                               ? 2
-                              : p.stage + 1
-                            : p.stage,
-                        lastCareTime: result === "fail" ? p.lastCareTime : Date.now()
-                      }
-                    : p
+                              : p.stage + 1)
+                          : p.stage,
+                      lastCareTime:
+                        result === "fail" ? p.lastCareTime : Date.now()
+                    }
+                  : p
+              )
+            );
+
+            if (result !== "fail") {
+              setWaterCount(c => c + 1);
+              let points = result === "perfect" ? 10 : 5;
+              if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+              if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+              setHarmony(h => {
+                const newH = Math.min(100, h + points);
+                if (newH >= 90)
+                  setDailyGoals(gs =>
+                    gs.map(g => (g.id === 3 ? { ...g, completed: true } : g))
+                  );
+                return newH;
+              });
+              setDailyGoals(gs =>
+                gs.map(g =>
+                  g.id === 1 && !g.completed && waterCount + 1 >= 3
+                    ? { ...g, completed: true }
+                    : g
                 )
               );
-              if (result !== "fail") {
-                setWaterCount(c => c + 1);
-                let points = result === "perfect" ? 10 : 5;
-                if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-                if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
-                setHarmony(h => {
-                  const newH = Math.min(100, h + points);
-                  if (newH >= 90) {
-                    setDailyGoals(goals =>
-                      goals.map(g => (g.id === 3 ? { ...g, completed: true } : g))
-                    );
-                  }
-                  return newH;
-                });
-                setDailyGoals(goals =>
-                  goals.map(g =>
-                    g.id === 1 && !g.completed && waterCount + 1 >= 3
-                      ? { ...g, completed: true }
-                      : g
-                  )
-                );
-              }
-            }}
-          />
-        </div>
+            }
+          }}
+        />
       )}
 
       {activeMiniGame === "fertilize" && (
-        <div className="minigame-overlay">
-          <FertilizeMiniGame
-            onResult={result => {
-              setActiveMiniGame(null);
-              setPlantedPlants(plants =>
-                plants.map(p =>
-                  p.instanceId === activePlantId
-                    ? {
-                        ...p,
-                        mood:
-                          result === "fail"
-                            ? p.mood
-                            : result === "perfect"
-                            ? "radiant"
-                            : "happy",
-                        stage:
-                          result !== "fail" && p.stage < 3
-                            ? // Prevent bloom during Cold Snap
-                              forecast[0].name === "Cold Snap" && p.stage === 2
+        <FertilizeMiniGame
+          onResult={result => {
+            console.log("Fertilize result:", result);
+            setActiveMiniGame(null);
+
+            setPlantedPlants(plants =>
+              plants.map(p =>
+                p.instanceId === activePlantId
+                  ? {
+                      ...p,
+                      mood:
+                        result === "fail"
+                          ? p.mood
+                          : result === "perfect"
+                          ? "radiant"
+                          : "happy",
+                      stage:
+                        result !== "fail" && p.stage < 3
+                          ? (forecast[0].name === "Cold Snap" && p.stage === 2
                               ? 2
-                              : Math.min(3, p.stage + 1)
-                            : p.stage,
-                        lastCareTime: result === "fail" ? p.lastCareTime : Date.now()
-                      }
-                    : p
+                              : Math.min(3, p.stage + 1))
+                          : p.stage,
+                      lastCareTime:
+                        result === "fail" ? p.lastCareTime : Date.now()
+                    }
+                  : p
+              )
+            );
+
+            if (result !== "fail") {
+              setFertilizeCount(c => c + 1);
+              let points = result === "perfect" ? 8 : 5;
+              if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
+              if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+              setHarmony(h => {
+                const newH = Math.min(100, h + points);
+                if (newH >= 90)
+                  setDailyGoals(gs =>
+                    gs.map(g => (g.id === 3 ? { ...g, completed: true } : g))
+                  );
+                return newH;
+              });
+              setDailyGoals(gs =>
+                gs.map(g =>
+                  g.id === 2 && !g.completed && fertilizeCount + 1 >= 2
+                    ? { ...g, completed: true }
+                    : g
                 )
               );
-              if (result !== "fail") {
-                setFertilizeCount(c => c + 1);
-                let points = result === "perfect" ? 8 : 5;
-                if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-                if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
-                setHarmony(h => {
-                  const newH = Math.min(100, h + points);
-                  if (newH >= 90) {
-                    setDailyGoals(goals =>
-                      goals.map(g => (g.id === 3 ? { ...g, completed: true } : g))
-                    );
-                  }
-                  return newH;
-                });
-                setDailyGoals(goals =>
-                  goals.map(g =>
-                    g.id === 2 && !g.completed && fertilizeCount + 1 >= 2
-                      ? { ...g, completed: true }
-                      : g
-                  )
-                );
-              }
-            }}
-          />
-        </div>
+            }
+          }}
+        />
       )}
     </div>
   );

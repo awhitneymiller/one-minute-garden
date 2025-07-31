@@ -1,21 +1,22 @@
-// src/components/MiniGames/WaterMiniGame.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 export default function WaterMiniGame({ onResult }) {
   const [position, setPosition] = useState(0);
   const [running, setRunning] = useState(true);
   const direction = useRef(1);
 
+  // Bar animation
   useEffect(() => {
-    const interval = setInterval(() => {
+    const iv = setInterval(() => {
       if (!running) return;
-      setPosition(prev => {
-        let next = prev + direction.current * 3;
+      setPosition(p => {
+        let next = p + direction.current * 3;
         if (next >= 100 || next <= 0) direction.current *= -1;
         return Math.max(0, Math.min(100, next));
       });
     }, 30);
-    return () => clearInterval(interval);
+    return () => clearInterval(iv);
   }, [running]);
 
   function stop() {
@@ -26,7 +27,7 @@ export default function WaterMiniGame({ onResult }) {
     onResult(result);
   }
 
-  return (
+  return createPortal(
     <div className="minigame-overlay">
       <div className="minigame">
         <h3>💧 Watering Mini-Game</h3>
@@ -36,6 +37,7 @@ export default function WaterMiniGame({ onResult }) {
         </div>
         <p>Click when the blue bar is inside the green zone!</p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

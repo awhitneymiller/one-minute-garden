@@ -1,0 +1,50 @@
+/* src/components/CraftingView.css */
+.crafting-view {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.crafting-view h2 {
+  margin-bottom: 0.5rem;
+}
+
+.crafting-view p {
+  margin-bottom: 1rem;
+}
+
+.crafting-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.crafting-card {
+  background: var(--panel);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1rem;
+  text-align: center;
+}
+
+.crafting-img {
+  width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+.crafting-card button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.crafting-card button:hover {
+  background: var(--primary-dark);
+}
