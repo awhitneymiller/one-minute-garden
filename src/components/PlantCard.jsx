@@ -4,8 +4,6 @@ import "./PlantCard.css";
 import { allPlants } from "../data/plants";
 
 
-const BASE = import.meta.env.BASE_URL || "/";
-
 
 function getRecipeStep(plant) {
   const def = allPlants.find(p => p.id === plant.id);
@@ -37,7 +35,7 @@ export default function PlantCard({
       <h4>{name}</h4>
 
       {/*please work*/}
-      <img src={image} alt={name} className="plant-img" />
+      <img src={plant.image} alt={plant.name} className="plant-img" />
 
 
       <p><strong>Stage:</strong> {stageLabel}</p>
