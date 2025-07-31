@@ -174,8 +174,12 @@ export default function App() {
       alert("You can have at most 3 plants in your garden.");
       return;
     }
-    // Remove seed from inventory and plant it
-    setInventory(inv => inv.filter(i => i.id !== seed.id));
+    // Remove just one matching seed from inventory
+    setInventory(inv => {
+      const idx = inv.findIndex(i => i.id === seed.id);
+      if (idx < 0) return inv;
+      return [...inv.slice(0, idx), ...inv.slice(idx + 1)];
+    });
     setPlantedPlants(plants => [
       ...plants,
       {
@@ -232,13 +236,24 @@ export default function App() {
     setActiveMiniGame("fertilize");
   }
 
-  function handleSell(id) {
-    // Remove plant and reward coins for a fully bloomed plant
-    setPlantedPlants(plants => plants.filter(p => p.instanceId !== id));
-    const def = allPlants.find(pl => pl.id === id);
-    const reward = def?.sellValue ?? 0;
-    setCoins(c => c + reward);
-  }
+  function handleSell(instanceId) {
+  // Find the planted instance
+  const plantToSell = plantedPlants.find(p => p.instanceId === instanceId);
+  if (!plantToSell) return;
+
+  // Remove it from the garden
+  setPlantedPlants(plants =>
+    plants.filter(p => p.instanceId !== instanceId)
+  );
+
+  // Look up its definition for the sellValue
+  const def = allPlants.find(pl => pl.id === plantToSell.id);
+  const reward = def?.sellValue ?? 0;
+
+  // Award coins
+  setCoins(c => c + reward);
+}
+
 
   function handleRemove(id) {
     // Remove a wilted plant (no coin reward)
@@ -249,8 +264,6 @@ export default function App() {
     // Use a Spirit Potion (if available) or 20 coins to revive a wilted plant
     if (items.potions > 0) {
       setItems(prev => ({ ...prev, potions: prev.potions - 1 }));
-    } else if (coins >= 20) {
-      setCoins(c => c - 20);
     } else {
       alert("Not enough resources to revive this plant (need a Spirit Potion or 20 coins).");
       return;
