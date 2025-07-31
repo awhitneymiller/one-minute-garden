@@ -3,8 +3,7 @@ import React from "react";
 import "./PlantCard.css";
 import { allPlants } from "../data/plants";
 
-
-
+// Find the next recipe step (used for validation elsewhere)
 function getRecipeStep(plant) {
   const def = allPlants.find(p => p.id === plant.id);
   return def?.growthRecipe?.[plant.stage];
@@ -23,7 +22,7 @@ export default function PlantCard({
   hasPremium,
   hasCompost
 }) {
-  const { instanceId, name, image /* ← this is now the imported URL */, stage, waterLevel, mood } = plant;
+  const { instanceId, name, image, stage, waterLevel, mood } = plant;
   const isWilted = mood === "wilted";
   const step     = getRecipeStep(plant);
 
@@ -34,7 +33,7 @@ export default function PlantCard({
     <div className="plant-card-container">
       <h4>{name}</h4>
 
-      {/*please work*/}
+      {/* now image is a full URL from data/plants.js */}
       <img src={image} alt={name} className="plant-img" />
 
       <p><strong>Stage:</strong> {stageLabel}</p>
@@ -49,6 +48,7 @@ export default function PlantCard({
       </div>
 
       <div className="action-buttons">
+        {/* growing stages */}
         {!isWilted && stage < 3 && (
           <>
             <button className="pill-button" onClick={() => onWater(instanceId)}>
@@ -73,6 +73,7 @@ export default function PlantCard({
           </>
         )}
 
+        {/* wilted */}
         {isWilted && (
           <>
             <button className="pill-button" onClick={() => onRevive(instanceId)}>
@@ -84,6 +85,7 @@ export default function PlantCard({
           </>
         )}
 
+        {/* fully bloomed */}
         {stage === 3 && !isWilted && (
           <button className="pill-button" onClick={() => onSell(instanceId)}>
             💰 Sell
