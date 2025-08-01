@@ -29,3 +29,10 @@
   margin-bottom: 0.25rem;
   font-size: 0.9rem;
 }
+
+.recipe-img {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--card-radius);
+  margin-bottom: 0.5rem;
+}

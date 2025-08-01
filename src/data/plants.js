@@ -1,39 +1,24 @@
-// 1. We import the Catalan locale from date-fns (you can remove this if you’re not using it here):
-import { ca } from "date-fns/locale";
 
-// 2. We export an array called “allPlants” which holds the definition for each plant in the game:
+import { ca } from "date-fns/locale";
+import { CACHE_SIZE_UNLIMITED } from "firebase/firestore";
+
 export const allPlants = [
 
-  // 3. Each object below represents one plant type:
+
   {
-    // 4. A unique identifier:
+    
     id: "pink-flower",
-
-    // 5. Human-friendly display name:
     name: "Pink Flower",
-
-    // 6. The URL to its image: we use Vite’s `new URL(..., import.meta.url).href`
-    //    so that the build will correctly fingerprint and serve this asset.
     image: new URL("../assets/plants/flower4_pink.png", import.meta.url).href,
-
-    // 7. How many coins it costs to buy a seed:
     cost: 5,
-
-    // 8. How many coins you get when you sell a fully bloomed plant:
     sellValue: 10,
-
-    // 9. Rarity tier (affects shop sorting, drop rates, etc.):
     rarity: "common",
-
-    // 10. Which biomes this seed is available in:
     availableBiomes: ["meadow"],
-
-    // 11. The “growthRecipe” defines the four care steps (seed → bloom):
     growthRecipe: [
-      { action: "water",    minAccuracy: "normal" },  // step 0 → 1
-      { action: "fertilize", type: "standard" },      // step 1 → 2
-      { action: "weather",   condition: "Sunny" },    // step 2 → 3
-      { action: "fertilize", type: "standard" }       // step 3 → bloom
+      { action: "water",    minAccuracy: "normal" },  
+      { action: "fertilize", type: "standard" },      
+      { action: "weather",   condition: "Sunny" },   
+      { action: "fertilize", type: "standard" }      
     ]
   },
 
@@ -96,7 +81,7 @@ export const allPlants = [
     cost: 15,
     sellValue: 19,
     rarity: "uncommon",
-    availableBiomes: ["meadow", "grove"],
+    availableBiomes: ["meadow", "grove", "cliffside"],
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "fertilize", type: "compost" },
@@ -113,7 +98,7 @@ export const allPlants = [
     cost: 20,
     sellValue: 28,
     rarity: "uncommon",
-    availableBiomes: ["meadow", "grove"],
+    availableBiomes: ["meadow", "grove", "cliffside", "cavern"],
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "fertilize", type: "standard" },
@@ -130,11 +115,61 @@ export const allPlants = [
     cost: 25,
     sellValue: 37,
     rarity: "rare",
-    availableBiomes: ["meadow", "grove"],
+    availableBiomes: ["meadow", "grove", "cliffside"],
     growthRecipe: [
       { action: "weather",   condition: "Sunny" },
       { action: "water",     minAccuracy: "perfect" },
       { action: "fertilize", type: "compost" },
+      { action: "fertilize", type: "premium" }
+    ]
+  },
+  // “Colourful pot of flowers”
+    {
+    id: "colorful-pot-of-flowers",
+    name: "Colourful Pot of Flowers",
+    image: new URL("../assets/plants/flowerpot3_colorful.png", import.meta.url).href,
+    cost: 30,
+    sellValue: 55,
+    rarity: "rare",
+    availableBiomes: ["meadow", "grove"],
+    growthRecipe: [
+      { action: "weather",   condition: "Rainy" },
+      { action: "water",     minAccuracy: "perfect" },
+      { action: "fertilize", type: "compost" },
+      { action: "water", minAccuracy: "perfect" }
+    ]
+  },
+
+    // "Cheerful pot of flowers”
+    {
+    id: "cheerful-pot-of-flowers",
+    name: "Cheerful Pot of Flowers",
+    image: new URL("../assets/plants/flowerpot6_colorful.png", import.meta.url).href,
+    cost: 35,
+    sellValue: 70,
+    rarity: "rare",
+    availableBiomes: ["meadow", "grove"],
+    growthRecipe: [
+      { action: "water",     minAccuracy: "normal" },
+      { action: "water",     minAccuracy: "perfect" },
+      { action: "weather", condition: "Sunny" },
+      { action: "fertilize", type: "premium" }
+    ]
+  },
+
+      // "Pink Flower Bush"
+    {
+    id: "pink-flower-bush",
+    name: "Pink Flower Bush",
+    image: new URL("../assets/plants/bush2_pink.png", import.meta.url).href,
+    cost: 35,
+    sellValue: 50,
+    rarity: "rare",
+    availableBiomes: ["meadow", "grove"],
+    growthRecipe: [
+      { action: "water",     minAccuracy: "normal" },
+      { action: "water",     minAccuracy: "perfect" },
+      { action: "weather", condition: "Sunny" },
       { action: "fertilize", type: "premium" }
     ]
   },
@@ -162,7 +197,7 @@ export const allPlants = [
     name: "Starpetal",
     image: new URL("../assets/plants/flower9_yellow.png", import.meta.url).href,
     cost: 60,
-    sellValue: 78,
+    sellValue: 80,
     rarity: "legendary",
     availableBiomes: ["grove", "greenhouse", "cliffside", "cavern", "lunar"],
     growthRecipe: [
@@ -173,13 +208,12 @@ export const allPlants = [
     ]
   },
 
-  // 20. “Pink Spirit Flower”
   {
     id: "pink-spirit-flower",
     name: "Pink Spirit Flower",
     image: new URL("../assets/plants/flower2_pink.png", import.meta.url).href,
     cost: 65,
-    sellValue: 85,
+    sellValue: 90,
     rarity: "legendary",
     availableBiomes: ["grove", "cliffside", "greenhouse"],
     growthRecipe: [
@@ -190,4 +224,20 @@ export const allPlants = [
     ]
   }
 
-];  // ← end of the allPlants array
+      /*||||| Greenhouse Only Themed Entries ||||||*/
+  ,{
+    id: "marijuana",
+    name: "marijuana",
+    image: new URL("../assets/plants/weedlogo.webp", import.meta.url).href,
+    cost: 100,
+    sellValue: 200,
+    rarity: "greenhouse only",
+    availableBiomes: ["greenhouse"],
+    growthRecipe: [
+      { action: "fertilize", type: "compost" },
+      { action: "water",     minAccuracy: "normal" },
+      { action: "fertilize", type: "premium" },
+      { action: "water", minAccuracy: "perfect" }
+    ]
+  }
+];  

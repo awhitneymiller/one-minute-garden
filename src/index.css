@@ -41,9 +41,9 @@ html, body, #root {
 .map-meadow    { --bg:#b1dab3; --panel:#ffffff; --primary:#0d3619; --primary-light:#d1fae5; }
 .map-grove     { --bg:#f3f0e1; --panel:#83a082; --primary:#2dd4bf; --primary-light:#cffafe; }
 .map-cliffside { --bg:#b2e7fc; --panel:#f8fafc; --primary:#3b82f6; --primary-light:#e0f2fe; }
-.map-greenhouse{ --bg:#f7fee7; --panel:#fbfefc; --primary:#84cc16; --primary-light:#f0fdf4; }
+.map-greenhouse{ --bg:#a2ffa3; --panel:#5d8440; --primary:#356b0e; --primary-light:#b4eac4; }
 .map-cavern    { --bg:#eff8ff; --panel:#f3fafe; --primary:#0ea5e9; --primary-light:#f0f9ff; }
-.map-lunar     { --bg:#f5f3ff; --panel:#faf5ff; --primary:#c084fc; --primary-light:#faf5ff; }
+.map-lunar     { --bg:#b2aec7; --panel:#655b6f; --primary:#b469ff; --primary-light:#e4c9ff; }
 
 [data-theme="dark"] .map-meadow    { --bg:#485e50; --panel:#85a08b; --primary:#67867a; --primary-light:#9fc9a4; }
 [data-theme="dark"] .map-grove     { --bg:#70634c; --panel:#92a080; --primary:#5eead4; --primary-light:#134e4a; }
