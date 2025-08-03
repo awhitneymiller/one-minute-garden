@@ -55,6 +55,7 @@ export default function App() {
   const [plantedPlants, setPlantedPlants] = useState([]);
   const [view, setView] = useState("garden");
   const [currentMap, setCurrentMap] = useState("meadow");
+  const [unlockedMaps, setUnlockedMaps] = useState(["meadow"]);
   const [forecast] = useState(generateForecast());  // 5-day random weather forecast
   const [dailyGoals, setDailyGoals] = useState(generateGoals());
   const [coins, setCoins] = useState(0);
@@ -76,7 +77,7 @@ export default function App() {
   );
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
    const todayWeather = forecast[currentDayIndex].name;
-   
+
   // 🔧 1. Add loaded state
   const [loaded, setLoaded] = useState(false);
 
@@ -100,6 +101,7 @@ export default function App() {
       const snap = await getDoc(ref);   
       if (snap.exists()) {
         const d = snap.data();
+        setUnlockedMaps(d.unlockedMaps || ["meadow"]);
         // Inventory and starter seeds setup
         if (!d.inventory || d.inventory.length === 0) {
           setInventory(starterSeeds);
@@ -166,8 +168,9 @@ export default function App() {
           streak: 0,
           totalBlooms: 0,
           items: { premiumFertilizer: 0, compost: 0, potions: 0 },
-          journal: {}
-        };
+          journal: {},
+          unlockedMaps: ["meadow"]          
+        };  
         await setDoc(ref, initData);
         setInventory(starterSeeds);
         setPlantedPlants([]);
@@ -196,6 +199,7 @@ export default function App() {
       streak,
       items,
       totalBlooms,
+      unlockedMaps,
       dailyStats,
     }).catch(console.error);
   }, [user, inventory, plantedPlants, coins, streak, items, totalBlooms, loaded]);
@@ -554,6 +558,7 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
                   <PlantCard
                     key={p.instanceId}
                     plant={p}
+                    weather={forecast[currentDayIndex].name}
                     onWater={handleWater}
                     onFertilize={handleFertilize}
                     onPremiumFertilize={handlePremiumFertilize}
@@ -588,6 +593,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       setCoins={setCoins}
       currentMap={currentMap}
       onSelectMap={setCurrentMap}
+      unlockedMaps={unlockedMaps}
+      setUnlockedMaps={setUnlockedMaps}
     />
   </main>
 )}
@@ -659,8 +666,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         ? {
             ...p,
             wrongAttempts: (p.wrongAttempts || 0) + 1,
-            stage: p.wrongAttempts + 1 >= 2 ? 4 : p.stage,
-            mood:  p.wrongAttempts + 1 >= 2 ? "wilted" : p.mood
+            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
           }
         : p
     )
@@ -746,8 +753,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         ? {
             ...p,
             wrongAttempts: (p.wrongAttempts || 0) + 1,
-            stage: p.wrongAttempts + 1 >= 2 ? 4 : p.stage,
-            mood:  p.wrongAttempts + 1 >= 2 ? "wilted" : p.mood
+            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
           }
         : p
     )

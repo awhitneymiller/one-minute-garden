@@ -56,3 +56,72 @@
   object-fit: contain;
   margin-bottom: 0.5rem;
 }
+
+/* ----------------------------------
+   Base pill-button style (reuse
+   the same as PlantCard.css)
+   ---------------------------------- */
+.pill-button {
+  background: #064e3b;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.pill-button:hover {
+  background: #065f46;
+}
+
+/* ----------------------------------
+   Shop-specific overrides
+   ---------------------------------- */
+.shop-item-card button {
+  /* override default <button> in shop */
+  background: #064e3b;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  margin-top: 0.5rem;
+}
+
+.shop-item-card button:hover:not(:disabled) {
+  background: #065f46;
+}
+
+/* Disabled state */
+.shop-item-card button:disabled {
+  background: #94a3b8;  /* greyed out */
+  cursor: not-allowed;
+}
+
+/* Style the active tab pills too */
+.shop-tabs button {
+  border-radius: 9999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.shop-tabs button.active {
+  background: #064e3b;
+  color: white;
+}
+
+.shop-tabs button:not(.active) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.shop-tabs button:not(.active):hover {
+  background: #e2e8f0;
+}

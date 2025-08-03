@@ -17,8 +17,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",    minAccuracy: "normal" },  
       { action: "fertilize", type: "standard" },      
-      { action: "weather",   condition: "Sunny" },   
-      { action: "fertilize", type: "standard" }      
+      { action: "weather",   condition: "Sunny" }    
     ]
   },
 
@@ -34,8 +33,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",    minAccuracy: "normal" },
       { action: "fertilize", type: "standard" },
-      { action: "weather",   condition: "Rainy" },
-      { action: "fertilize", type: "standard" }
+      { action: "weather",   condition: "Rainy" }
     ]
   },
 
@@ -51,8 +49,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "weather",   condition: "Cloudy" },
       { action: "water",     minAccuracy: "normal" },
-      { action: "fertilize", type: "compost" },
-      { action: "fertilize", type: "premium" }
+      { action: "fertilize", type: "compost" }
     ]
   },
 
@@ -68,8 +65,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "weather",   condition: "Foggy" },
-      { action: "fertilize", type: "standard" },
-      { action: "fertilize", type: "premium" }
+      { action: "fertilize", type: "standard" }
     ]
   },
 
@@ -85,8 +81,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "fertilize", type: "compost" },
-      { action: "weather",   condition: "Cold Snap" },
-      { action: "fertilize", type: "premium" }
+      { action: "weather",   condition: "Cold Snap" }
     ]
   },
 
@@ -102,8 +97,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "fertilize", type: "standard" },
-      { action: "weather",   condition: "Cloudy" },
-      { action: "fertilize", type: "premium" }
+      { action: "weather",   condition: "Cloudy" }
     ]
   },
 
@@ -119,8 +113,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "weather",   condition: "Sunny" },
       { action: "water",     minAccuracy: "perfect" },
-      { action: "fertilize", type: "compost" },
-      { action: "fertilize", type: "premium" }
+      { action: "fertilize", type: "compost" }
     ]
   },
   // “Colourful pot of flowers”
@@ -135,8 +128,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "weather",   condition: "Rainy" },
       { action: "water",     minAccuracy: "perfect" },
-      { action: "fertilize", type: "compost" },
-      { action: "water", minAccuracy: "perfect" }
+      { action: "fertilize", type: "compost" }
     ]
   },
 
@@ -152,8 +144,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "water",     minAccuracy: "perfect" },
-      { action: "weather", condition: "Sunny" },
-      { action: "fertilize", type: "premium" }
+      { action: "weather", condition: "Sunny" }
     ]
   },
 
@@ -169,8 +160,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",     minAccuracy: "normal" },
       { action: "water",     minAccuracy: "perfect" },
-      { action: "weather", condition: "Sunny" },
-      { action: "fertilize", type: "premium" }
+      { action: "weather", condition: "Sunny" }
     ]
   },
 
@@ -186,8 +176,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "weather",   condition: "Foggy" },
       { action: "water",     minAccuracy: "normal" },
-      { action: "fertilize", type: "standard" },
-      { action: "fertilize", type: "premium" }
+      { action: "fertilize", type: "standard" }
     ]
   },
 
@@ -203,8 +192,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "water",     minAccuracy: "perfect" },
       { action: "water",     minAccuracy: "perfect" },
-      { action: "weather",   condition: "Cloudy" },
-      { action: "fertilize", type: "premium" }
+      { action: "weather",   condition: "Cloudy" }
     ]
   },
 
@@ -219,8 +207,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "fertilize", type: "compost" },
       { action: "water",     minAccuracy: "normal" },
-      { action: "weather",   condition: "Cold Snap" },
-      { action: "fertilize", type: "premium" }
+      { action: "weather",   condition: "Cold Snap" }
     ]
   }
 
@@ -236,8 +223,7 @@ export const allPlants = [
     growthRecipe: [
       { action: "fertilize", type: "compost" },
       { action: "water",     minAccuracy: "normal" },
-      { action: "fertilize", type: "premium" },
-      { action: "water", minAccuracy: "perfect" }
+      { action: "fertilize", type: "premium" }
     ]
   }
 ];  

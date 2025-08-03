@@ -1,21 +1,33 @@
-// src/components/PlantCard.jsx
 import React from "react";
 import "./PlantCard.css";
 import { allPlants } from "../data/plants";
 
-// 🌱 Glob all the plant images
-const plantImages = import.meta.glob("../assets/plants/*.png", {
-  eager: true,
-  import: "default"
-});
-
-function getRecipeStep(plant) {
+function getFullRecipe(plant) {
   const def = allPlants.find(p => p.id === plant.id);
-  return def?.growthRecipe?.[plant.stage];
+  return def?.growthRecipe?.map((step, i) => {
+    let desc;
+    switch (step.action) {
+      case "water":
+        desc = `Water (${step.minAccuracy || "normal"})`;
+        break;
+      case "fertilize":
+        if (step.type === "standard") desc = "Standard Fertilize";
+        else if (step.type === "premium") desc = "Premium Fertilize";
+        else if (step.type === "compost") desc = "Compost";
+        break;
+      case "weather":
+        desc = `Wait for ${step.condition}`;
+        break;
+      default:
+        desc = step.action;
+    }
+    return <li key={i}>{desc}</li>;
+  }) || [];
 }
 
 export default function PlantCard({
   plant,
+  weather,
   onWater,
   onFertilize,
   onPremiumFertilize,
@@ -29,24 +41,31 @@ export default function PlantCard({
 }) {
   const { instanceId, name, image, stage, waterLevel, mood } = plant;
   const isWilted = mood === "wilted";
-  // Pull just the filename, e.g. "flower4_pink.png"
-  const filename = image.split("/").pop();
-  // Look up the actual imported URL
-  const imgSrc = plantImages[`../assets/plants/${filename}`];
-
-  const stageNames = ["Seed", "Sprout", "Growing", "Bloom"];
-  const stageLabel = isWilted ? "Wilted" : stageNames[stage];
+  const recipe = getFullRecipe(plant);
+  const def = allPlants.find(p => p.id === plant.id);
+  const nextStep = def?.growthRecipe?.[stage];
+  const weatherReady = nextStep?.action === "weather" && nextStep.condition === weather;
 
   return (
     <div className="plant-card-container">
       <h4>{name}</h4>
-      {imgSrc ? (
-        <img src={imgSrc} alt={name} className="plant-img" />
-      ) : (
-        <div className="plant-img placeholder">No image</div>
-      )}
 
-      <p><strong>Stage:</strong> {stageLabel}</p>
+      <div className="img-wrapper">
+        <img src={image} alt={name} className="plant-img" />
+        <div className="recipe-overlay">
+          <h5>Growth Recipe</h5>
+          <ul>
+            {recipe}
+          </ul>
+        </div>
+      </div>
+
+      <p>
+        <strong>Stage:</strong>{" "}
+        {isWilted
+          ? "Wilted"
+          : ["Seed", "Sprout", "Growing", "Bloom"][stage]}
+      </p>
       <p><strong>Mood:</strong> {isWilted ? "😢" : "😊"}</p>
 
       <div className="meter-label">💧 Water</div>
@@ -76,7 +95,11 @@ export default function PlantCard({
                 🍂 Compost
               </button>
             )}
-            <button className="pill-button" onClick={() => onWeatherAction(instanceId)}>
+
+            <button
+              className={`pill-button weather-button${weatherReady ? " ready" : ""}`}
+              onClick={() => onWeatherAction(instanceId)}
+            >
               Weather
             </button>
           </>
