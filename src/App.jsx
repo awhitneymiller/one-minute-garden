@@ -491,7 +491,7 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
                   weather-${forecast[currentDayIndex].name.toLowerCase().replace(/\s+/g,"-")}`}>
 
       <header className="app-header">
-        <h1>🌿 One Minute Garden</h1>
+        <h1>⚘Garden of Reflection⚘</h1>
         <nav className="nav">
           {["garden","map","recipes","calendar","journal","shop","crafting"].map(v => (
             <button
@@ -659,8 +659,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         ? {
             ...p,
             wrongAttempts: (p.wrongAttempts || 0) + 1,
-            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
-            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
+            stage: p.wrongAttempts + 1 >= 2 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 2 ? "wilted" : p.mood
           }
         : p
     )
@@ -746,8 +746,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         ? {
             ...p,
             wrongAttempts: (p.wrongAttempts || 0) + 1,
-            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
-            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
+            stage: p.wrongAttempts + 1 >= 2 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 2 ? "wilted" : p.mood
           }
         : p
     )
