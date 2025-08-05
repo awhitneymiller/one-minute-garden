@@ -38,7 +38,7 @@ import ShopView from "./components/ShopView";
 import WaterMiniGame from "./components/MiniGames/WaterMiniGame";
 import FertilizeMiniGame from "./components/MiniGames/FertilizeMiniGame";
 import CraftingView from "./components/CraftingView";
-
+import TutorialView from "./components/TutorialView";
 
 export default function App() {
   // --- Starter seeds (first 3 defined in allPlants) ---
@@ -497,7 +497,7 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       <header className="app-header">
         <h1>⚘Garden of Reflection⚘</h1>
         <nav className="nav">
-          {["garden","map","recipes","calendar","journal","shop","crafting"].map(v => (
+          {["garden","map","recipes","calendar","journal","shop","crafting", "tutorial"].map(v => (
             <button
               key={v}
               className={view === v ? "active" : ""}
@@ -645,6 +645,12 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
           />
         </main>
       )}
+
+    {view === "tutorial" && (
+      <main className="single-pane">
+      <TutorialView />
+    </main>
+    )}
 
       <MusicPlayer />
 
