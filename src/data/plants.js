@@ -222,10 +222,10 @@ export const allPlants = [
       { action: "weather",   condition: "Cold Snap" },
       { action: "fertilize", type: "premium" }
     ]
-  }
+  },
 
       /*||||| Greenhouse Only Themed Entries ||||||*/
-  ,{
+  {
     id: "marijuana",
     name: "marijuana",
     image: new URL("../assets/plants/weedlogo.webp", import.meta.url).href,
@@ -239,5 +239,22 @@ export const allPlants = [
       { action: "fertilize", type: "premium" },
       { action: "water", minAccuracy: "perfect" }
     ]
-  }
+
+    
+  },
+  {
+    id: "shrooms",
+    name: "Magic Mushrooms",
+    image: new URL("../assets/plants/weedlogo.webp", import.meta.url).href,
+    cost: 500,
+    sellValue: 10000000000,
+    rarity: "greenhouse only",
+    availableBiomes: ["greenhouse"],
+    growthRecipe: [
+      { action: "fertilize", type: "compost" },
+      { action: "water",     minAccuracy: "normal" },
+      { action: "fertilize", type: "premium" },
+      { action: "water", minAccuracy: "perfect" }
+    ]
+  },
 ];  
