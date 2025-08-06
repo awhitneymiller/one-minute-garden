@@ -256,5 +256,5 @@ export const allPlants = [
       { action: "fertilize", type: "premium" },
       { action: "water", minAccuracy: "perfect" }
     ]
-  },
+  }
 ];  
