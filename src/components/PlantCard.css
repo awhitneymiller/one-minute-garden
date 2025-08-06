@@ -5,29 +5,83 @@
   margin-top: 1rem;
 }
 
+/* Card container */
 .plant-card-container {
   background: #fdfaf6;
   padding: 1rem;
   border-radius: 1rem;
   border: 1px solid #ddd;
-  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 2px 4px 8px rgba(0,0,0,0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: visible; /* allow overlays to be visible */
 }
 
 .plant-card-container:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
 }
 
+/* Image + overlay wrapper */
+.img-wrapper {
+  position: relative;
+  display: block;
+}
 
+/* Plant image */
 .plant-img {
   display: block;
   max-width: 100%;
   height: auto;
-  margin: 0 auto 1rem;   /* auto left/right, 1rem bottom */
+  margin: 0 auto 1rem;
+  border-radius: 0.5rem;
 }
 
+/* Recipe overlay hidden by default */
+.recipe-overlay {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  right: 0.3rem;
+  bottom: 0.3rem;
+  background: rgba(255,255,255,0.9);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  overflow-y: auto;         /* allow scrolling via wheel/touch */
+  scrollbar-width: none;    /* Firefox: hide scrollbar */
+  -ms-overflow-style: none; /* IE 11: hide scrollbar */
+}
 
+.recipe-overlay::-webkit-scrollbar {
+  display: none;            /* Chrome/Safari/Edge: hide scrollbar */
+}
+
+/* Show overlay on hover */
+.img-wrapper:hover .recipe-overlay {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Overlay content */
+.recipe-overlay h5 {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.recipe-overlay ul {
+  list-style: disc inside;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* Water meter */
 .meter-label {
   font-size: 0.85rem;
   margin-top: 0.5rem;
@@ -36,7 +90,7 @@
 .meter-bar {
   height: 10px;
   width: 100%;
-  background-color: #e0e0e0;
+  background: #e0e0e0;
   border-radius: 5px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -47,20 +101,40 @@
   height: 100%;
 }
 
-.meter-fill.growth {
-  background-color: #86efac;
-  height: 100%;
-}
-
-/* Make buttons in PlantCard smaller and spaced out */
+/* Action buttons */
 .action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;          /* space between buttons */
+  gap: 0.5rem;
   margin-top: 0.5rem;
 }
 
-.action-buttons .pill-button {
-  padding: 0.3rem 0.6rem;   /* smaller pads */
-  font-size: 0.8rem;        /* smaller text */
+.pill-button {
+  background: #064e3b;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.pill-button:hover {
+  background: #065f46;
+}
+
+/* Weather button base stays dark-green */
+.pill-button.weather-button {
+  background: #065f46;
+}
+
+.pill-button.weather-button:hover {
+  background: #047857;
+}
+
+/* “Ready” state glow + lift */
+.pill-button.weather-button.ready {
+  box-shadow: 0 0 8px rgba(10,200,100,0.7);
+  transform: translateY(-1px);
 }

@@ -1,35 +1,113 @@
+/* src/App.css */
+
+/* Global base styles */
 body {
   font-family: "Segoe UI", sans-serif;
   background-color: #f2fff5;
   color: #333;
+  margin: 0;
+  padding: 0;
 }
 
+/* ========== HEADER & NAV ========== */
 .app-header {
-  background: linear-gradient(to right, #b6e2d3, #f6d8ae);
+  background: rgba(30, 70, 30, 0.85);
   padding: 1rem 2rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #ccc;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  
+  /* border + glow */
+  border-bottom: 2px solid #fff;
+  box-shadow:
+    0 0 12px rgba(0,128,0,0.3),
+    0 0 24px rgba(255,255,255,0.6);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.app-header:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 20px rgba(0,128,0,0.5),
+    0 0 32px rgba(255,255,255,0.8);
 }
 
-.nav button,
-.logout-btn,
-.theme-toggle {
-  margin: 0 0.5rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 8px;
-  border: none;
-  background-color: #f0f0f0;
-  cursor: pointer;
+.app-header h1 {
+  font-family: "Georgia", serif;
+  font-size: 1.8rem;
+  color: #fff;
+  text-shadow:
+    0 0 8px rgba(255,255,255,0.8),
+    0 0 16px rgba(0,128,0,0.6);
+  margin: 0;
+}
+
+/* Navigation container styled as a “card” */
+header.app-header nav {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.6rem 1.2rem;
+  margin-left: 1rem;
+  background: rgba(255,255,255,0.95);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  box-shadow:
+    0 0 12px rgba(0,128,0,0.3),
+    0 0 24px rgba(255,255,255,0.6),
+    0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+header.app-header nav:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 20px rgba(0,128,0,0.5),
+    0 0 32px rgba(255,255,255,0.8),
+    0 6px 16px rgba(0,0,0,0.15);
+}
+
+/* Nav buttons */
+header.app-header nav button {
+  background: #fff;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  color: #114411;
   font-weight: bold;
+  text-transform: lowercase;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+header.app-header nav button:hover,
+header.app-header nav button.active {
+  background: #fff;
+  color: #006600;
+  box-shadow:
+    0 0 8px rgba(255,255,255,0.9),
+    0 2px 8px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
 }
 
-.nav button.active {
-  background-color: #b6e2d3;
-  color: #064d3c;
+/* Dark mode & logout pill buttons */
+.pill-button {
+  margin-left: 1rem;
+  background: #fff;
+  color: #225522;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pill-button:hover {
+  background: #fff;
+  box-shadow:
+    0 0 8px rgba(255,255,255,0.9),
+    0 2px 8px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
 }
 
+/* ========== DASHBOARD & CARDS ========== */
 .dashboard {
   display: flex;
   flex-wrap: wrap;
@@ -46,7 +124,7 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* ========== PLANT CARD STYLES ========== */
+/* ========== PLANT GRID & CARDS ========== */
 .plant-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -62,7 +140,6 @@ body {
   box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .plant-card-container:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
@@ -84,12 +161,11 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* ========== METERS (Water, Growth) ========== */
+/* ========== METERS ========== */
 .meter-label {
   font-size: 0.85rem;
   margin-top: 0.5rem;
 }
-
 .meter-bar {
   height: 10px;
   width: 100%;
@@ -98,25 +174,17 @@ body {
   overflow: hidden;
   margin-bottom: 0.5rem;
 }
-
-.meter-fill {
-  height: 100%;
-  transition: width 0.3s ease-in-out;
-}
-
 .meter-fill.water {
   background-color: #9dd1ea;
 }
-
 .meter-fill.growth {
   background-color: #81c784;
 }
 
-/* ========== PROGRESS BAR (Generic) ========== */
+/* ========== PROGRESS BAR ========== */
 .progress-wrap {
   margin-top: 0.5rem;
 }
-
 .progress-bar {
   width: 100%;
   height: 12px;
@@ -124,14 +192,13 @@ body {
   border-radius: 8px;
   overflow: hidden;
 }
-
 .progress-fill {
   height: 100%;
   border-radius: 8px;
   transition: width 0.3s ease-in-out;
 }
 
-/* ========== MINIGAME STYLES ========== */
+/* ========== MINIGAMES ========== */
 .minigame-overlay {
   position: fixed;
   inset: 0;
@@ -141,14 +208,12 @@ body {
   justify-content: center;
   z-index: 999;
 }
-
 .minigame {
   background: #fff;
   padding: 1rem;
   border-radius: 8px;
   text-align: center;
 }
-
 .bar-container {
   position: relative;
   width: 80%;
@@ -158,7 +223,6 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
-
 .target {
   position: absolute;
   left: 40%;
@@ -166,7 +230,6 @@ body {
   height: 100%;
   background: lightgreen;
 }
-
 .bar-fill {
   position: absolute;
   width: 10%;
@@ -175,9 +238,8 @@ body {
   transition: left 0.03s;
 }
 
-/* ========== OTHER ========== */
+/* ========== UTILITY ========== */
 .done {
   text-decoration: line-through;
   opacity: 0.6;
 }
-

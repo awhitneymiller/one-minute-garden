@@ -1,6 +1,17 @@
 /* MapView.css */
-.map-view { max-width:800px; margin:2rem auto; padding:1rem; }
-.map-tabs { display:flex; flex-wrap:wrap; gap:1rem; }
+
+.map-view {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.map-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .map-tab {
   background: var(--panel);
   border: 1px solid var(--primary-light);
@@ -10,8 +21,59 @@
   text-align: center;
   box-shadow: var(--card-shadow);
 }
-.map-tab.active { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
-.map-tab h3 { margin-bottom: 0.5rem; font-size:1.1rem; }
-.map-tab .locked { color: #e53e3e; font-size:0.9rem; margin:0.25rem 0 1rem; }
-.map-tab .unlocked { color: #10b981; font-size:0.9rem; margin:0.25rem 0 1rem; }
-.map-tab .pill-button { width:100%; }
+
+.map-tab.active {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.map-tab h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.map-tab .locked {
+  color: #e53e3e;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.map-tab .unlocked {
+  color: #10b981;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.map-tab .pill-button {
+  width: 100%;
+}
+
+/* Image wrapper with a light border by default */
+.map-image-wrapper {
+  margin: 1rem auto;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: var(--card-radius);
+  max-width: 600px;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: var(--card-shadow);
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* on hover: use your primary color for the outline */
+.map-image-wrapper:hover {
+  border: 2px solid var(--primary);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+}
+
+.map-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--card-radius);
+  transition: transform 0.2s ease;
+}
+
+.map-image-wrapper:hover .map-image {
+  transform: scale(1.015);
+}

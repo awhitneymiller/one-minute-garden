@@ -38,7 +38,7 @@ import ShopView from "./components/ShopView";
 import WaterMiniGame from "./components/MiniGames/WaterMiniGame";
 import FertilizeMiniGame from "./components/MiniGames/FertilizeMiniGame";
 import CraftingView from "./components/CraftingView";
-
+import TutorialView from "./components/TutorialView";
 
 export default function App() {
   // --- Starter seeds (first 3 defined in allPlants) ---
@@ -55,6 +55,7 @@ export default function App() {
   const [plantedPlants, setPlantedPlants] = useState([]);
   const [view, setView] = useState("garden");
   const [currentMap, setCurrentMap] = useState("meadow");
+  const [unlockedMaps, setUnlockedMaps] = useState(["meadow"]);
   const [forecast] = useState(generateForecast());  // 5-day random weather forecast
   const [dailyGoals, setDailyGoals] = useState(generateGoals());
   const [coins, setCoins] = useState(0);
@@ -74,6 +75,9 @@ export default function App() {
   const [theme, setTheme] = useState(
     () => localStorage.getItem("omg-theme") || "light"
   );
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+   const todayWeather = forecast[currentDayIndex].name;
+
   // 🔧 1. Add loaded state
   const [loaded, setLoaded] = useState(false);
 
@@ -97,6 +101,7 @@ export default function App() {
       const snap = await getDoc(ref);   
       if (snap.exists()) {
         const d = snap.data();
+        setUnlockedMaps(d.unlockedMaps || ["meadow"]);
         // Inventory and starter seeds setup
         if (!d.inventory || d.inventory.length === 0) {
           setInventory(starterSeeds);
@@ -131,7 +136,7 @@ export default function App() {
             newWaterLevel = Math.max(0, Math.floor(100 * (1 - proportion)));
           }
           // Weather effect: Rainy day fully hydrates plants
-          if (forecast[0].name === "Rainy") {
+          if (todayWeather === "Rainy") {
             newWaterLevel = 100;
             newPlant.lastCareTime = now;  // rain acts as care event
           }
@@ -163,8 +168,9 @@ export default function App() {
           streak: 0,
           totalBlooms: 0,
           items: { premiumFertilizer: 0, compost: 0, potions: 0 },
-          journal: {}
-        };
+          journal: {},
+          unlockedMaps: ["meadow"]          
+        };  
         await setDoc(ref, initData);
         setInventory(starterSeeds);
         setPlantedPlants([]);
@@ -193,9 +199,18 @@ export default function App() {
       streak,
       items,
       totalBlooms,
+      unlockedMaps,
       dailyStats,
     }).catch(console.error);
   }, [user, inventory, plantedPlants, coins, streak, items, totalBlooms, loaded]);
+
+  useEffect(() => {
+  const id = setInterval(() => {
+    setCurrentDayIndex(i => (i + 1) % forecast.length);
+  }, 60_000); // every minute
+
+  return () => clearInterval(id);
+}, [forecast.length]);
 
   // --- Handlers --- !!!!!!!!!!!!!
   function plantSeed(seed) {
@@ -355,8 +370,8 @@ function handleCompost(id) {
     setFertilizeCount(count => count + 1);
     // Add harmony points (treat as perfect fertilize)
     let points = 8;
-    if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-    if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+    if (todayWeather === "Sunny") points = Math.floor(points * 1.5);
+    if (todayWeather === "Foggy") points = Math.floor(points * 0.5);
     setHarmony(h => {
       const newH = Math.min(100, h + points);
       if (newH >= 90) {
@@ -446,7 +461,7 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
   const plant = plantedPlants.find(p => p.instanceId === instanceId);
   const step  = getRecipeStep(plant);
 
-  if (!step || step.action !== "weather" || step.condition !== forecast[0].name) {
+  if (!step || step.action !== "weather" || step.condition !== todayWeather) {
     alert("The weather isn’t right for this stage!");
     return;
   }
@@ -476,14 +491,13 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
   if (!user) return <Auth />;
 
   return (
-    <div className={`app-container map-${currentMap} weather-${forecast[0].name
-        .toLowerCase()
-        .replace(/\s+/g, "-")}`}
-    >
+    <div className={`app-container map-${currentMap}
+                  weather-${forecast[currentDayIndex].name.toLowerCase().replace(/\s+/g,"-")}`}>
+
       <header className="app-header">
         <h1>⚘Garden of Reflection⚘</h1>
         <nav className="nav">
-          {["garden","map","recipes","calendar","journal","shop","crafting"].map(v => (
+          {["garden","map","recipes","calendar","journal","shop","crafting", "tutorial"].map(v => (
             <button
               key={v}
               className={view === v ? "active" : ""}
@@ -523,9 +537,12 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
           </section>
 
           <section className="card forecast">
-            <WeatherForecast forecast={forecast} />
-            <StreakDisplay streak={streak} />
-          </section>
+      <WeatherForecast
+        forecast={forecast}
+        currentDayIndex={currentDayIndex}
+      />
+      <StreakDisplay streak={streak} />
+    </section>
 
           <section className="card inventory">
             <SeedInventory inventory={inventory} onPlant={plantSeed} />
@@ -541,11 +558,12 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
                   <PlantCard
                     key={p.instanceId}
                     plant={p}
+                    weather={forecast[currentDayIndex].name}
                     onWater={handleWater}
                     onFertilize={handleFertilize}
                     onPremiumFertilize={handlePremiumFertilize}
                     onWeatherAction={tryWeatherAction}
-                    weather={forecast[0].name}
+                    weather={todayWeather}
                     onSell={handleSell}
                     onRevive={handleRevive}
                     hasPremium={items.premiumFertilizer > 0}
@@ -575,6 +593,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       setCoins={setCoins}
       currentMap={currentMap}
       onSelectMap={setCurrentMap}
+      unlockedMaps={unlockedMaps}
+      setUnlockedMaps={setUnlockedMaps}
     />
   </main>
 )}
@@ -626,6 +646,12 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         </main>
       )}
 
+    {view === "tutorial" && (
+      <main className="single-pane">
+      <TutorialView />
+    </main>
+    )}
+
       <MusicPlayer />
 
 {/* Mini-game overlays */}
@@ -646,8 +672,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         ? {
             ...p,
             wrongAttempts: (p.wrongAttempts || 0) + 1,
-            stage: p.wrongAttempts + 1 >= 2 ? 4 : p.stage,
-            mood:  p.wrongAttempts + 1 >= 2 ? "wilted" : p.mood
+            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
           }
         : p
     )
@@ -665,7 +691,7 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       let newStage = prevStage;
       if (result !== "fail" && prevStage < 3) {
         newStage =
-          forecast[0].name === "Cold Snap" && prevStage === 2
+          todayWeather === "Cold Snap" && prevStage === 2
             ? 2
             : prevStage + 1;
       }
@@ -695,8 +721,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       if (result !== "fail") {
         setWaterCount(c => c + 1);
         let points = result === "perfect" ? 10 : 5;
-        if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-        if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+        if (todayWeather === "Sunny") points = Math.floor(points * 1.5);
+        if (todayWeather === "Foggy") points = Math.floor(points * 0.5);
         setHarmony(h => {
           const newH = Math.min(100, h + points);
           if (newH >= 90)
@@ -733,8 +759,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
         ? {
             ...p,
             wrongAttempts: (p.wrongAttempts || 0) + 1,
-            stage: p.wrongAttempts + 1 >= 2 ? 4 : p.stage,
-            mood:  p.wrongAttempts + 1 >= 2 ? "wilted" : p.mood
+            stage: p.wrongAttempts + 1 >= 3 ? 4 : p.stage,
+            mood:  p.wrongAttempts + 1 >= 3 ? "wilted" : p.mood
           }
         : p
     )
@@ -751,7 +777,7 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       let newStage = prevStage;
       if (result !== "fail" && prevStage < 3) {
         newStage =
-          forecast[0].name === "Cold Snap" && prevStage === 2
+          todayWeather === "Cold Snap" && prevStage === 2
             ? 2
             : prevStage + 1;
       }
@@ -784,8 +810,8 @@ setDailyStats(prev => ({ ...prev, [todayKey]: statsSnapshot }));
       if (result !== "fail") {
         setFertilizeCount(c => c + 1);
         let points = result === "perfect" ? 8 : 5;
-        if (forecast[0].name === "Sunny") points = Math.floor(points * 1.5);
-        if (forecast[0].name === "Foggy") points = Math.floor(points * 0.5);
+        if (todayWeather === "Sunny") points = Math.floor(points * 1.5);
+        if (todayWeather === "Foggy") points = Math.floor(points * 0.5);
         setHarmony(h => {
           const newH = Math.min(100, h + points);
           if (newH >= 90)
